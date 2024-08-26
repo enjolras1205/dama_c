@@ -1,5 +1,6 @@
 #include <iostream>
-#include <curl>
+#include <cstdlib>
+#include <curl/curl.h>
 
 using namespace std;
 

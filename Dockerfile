@@ -9,7 +9,7 @@ COPY hello.c /app/bin/hello.c
 WORKDIR /app/bin
 
 # 编译 C 程序
-RUN gcc -o hello hello.c
+RUN gcc -o hello hello.cpp
 
 USER admin
 # 运行 C 程序

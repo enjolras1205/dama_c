@@ -3,7 +3,7 @@ FROM kun-registry.cn-shenzhen.cr.aliyuncs.com/kun-build/plat1024-c_cpp:202408221
 
 USER root
 # 创建一个简单的 C 程序
-COPY hello.c /app/bin/hello.c
+COPY hello.cpp /app/bin/hello.cpp
 
 # 设置工作目录
 WORKDIR /app/bin

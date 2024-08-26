@@ -1,6 +1,14 @@
-#include <stdio.h>
+#include <iostream>
+#include <curl>
+
+using namespace std;
 
 int main() {
-    printf("Hello, C!\n");
+    CURL* curl;
+    CURLcode res;
+    const char* token = std::getenv("token")
+    while(1) {
+        cout << "the token is: " << token << endl; 
+    }
     return 0;
 }

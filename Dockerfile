@@ -1,5 +1,5 @@
 # C Dockerfile
-FROM kun-registry.cn-shenzhen.cr.aliyuncs.com/kun-build/plat1024-c_cpp:20240822164703
+FROM kun-registry.cn-shenzhen.cr.aliyuncs.com/kun-build/plat1024-gcc:20240828153127
 
 USER root
 # 创建一个简单的 C 程序

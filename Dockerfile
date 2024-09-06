@@ -9,7 +9,7 @@ COPY main.c /app/bin/main.c
 WORKDIR /app/bin
 
 # 编译 C 程序
-RUN gcc -o main main.c
+RUN gcc -o main main.c -lcurl -lcjson
 
 USER admin
 # 运行 C 程序

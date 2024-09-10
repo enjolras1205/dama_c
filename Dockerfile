@@ -5,7 +5,7 @@ FROM kun-registry.cn-shenzhen.cr.aliyuncs.com/kun-build/plat1024-gcc:20240906162
 USER root
 
 ## 安装你需要的依赖
-RUN apt-get update && apt-get install `your package`
+# RUN apt-get update && apt-get install `your package`
 ##
 
 # kun容器得工作目录

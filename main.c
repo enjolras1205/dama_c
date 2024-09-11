@@ -3,111 +3,170 @@
 #include <string.h>
 #include <curl/curl.h>
 #include <cjson/cJSON.h>
+#include "solution.h"
 
-// Environment Variables
-const char *TOKEN = "your_token_here"; // 要替换成实际的 Token
-const char *WHITE = "true"; // 这里可以根据需要修改
-const char *QUERY_URL = "https://battle1024.ejoy.com/play/query";
-const char *MOVE_URL = "https://battle1024.ejoy.com/play/move";
 
-// HTTP请求接收结构
-struct response {
-    char *memory;
+#define QUERY_URL "https://battle1024.ejoy.com/play/query"
+#define MOVE_URL "https://battle1024.ejoy.com/play/move"
+#define TOKEN getenv("token") // 获取环境变量 TOKEN
+#define WHITE getenv("white") // 获取环境变量 WHITE
+
+typedef struct {
+    int x, y;
+} Move;
+
+typedef struct {
+    Move* moves;
     size_t size;
-};
+} MoveList;
 
-// 回调函数用于接收 HTTP 响应
-size_t write_callback(void *ptr, size_t size, size_t nmemb, struct response *resp) {
-    size_t realsize = size * nmemb;
-    resp->memory = realloc(resp->memory, resp->size + realsize + 1);
-    if (resp->memory == NULL) {
-        printf("not enough memory (realloc returned NULL)\n");
-        return 0;
-    }
 
-    memcpy(&(resp->memory[resp->size]), ptr, realsize);
-    resp->size += realsize;
-    resp->memory[resp->size] = 0; // Null-terminate the string
-    return realsize;
-}
+char* send_init_request();
+char* parse_response_init(const char* init_response);
+char* get_next_move(int board[8][8], bool white);
+char* send_moves_request(const char* next_move);
+char* parse_response_move(const char* move_response);
+void start_battle();
+void free_memory(char* str);
 
-char *send_request(const char *url, const char *json_data) {
-    CURL *curl;
-    CURLcode res;
-    struct response resp;
-    resp.memory = malloc(1);
-    resp.size = 0;
-
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-    curl = curl_easy_init();
-    if(curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, url);
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&resp);
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, NULL);
-        res = curl_easy_perform(curl);
-
-        curl_easy_cleanup(curl);
-    }
-    curl_global_cleanup();
-
-    return resp.memory;
-}
-
-char *send_init_request() {
-    cJSON *data = cJSON_CreateObject();
-    cJSON_AddStringToObject(data, "token", TOKEN);
-    char *json_data = cJSON_Print(data);
-    char *response = send_request(QUERY_URL, json_data);
-    cJSON_Delete(data);
-    free(json_data);
-    return response;
-}
-
-char *send_moves_request(char **moves, int count) {
-    cJSON *data = cJSON_CreateObject();
-    cJSON_AddStringToObject(data, "token", TOKEN);
-    cJSON *moves_array = cJSON_CreateArray();
-
-    for (int i = 0; i < count; i++) {
-        cJSON_AddItemToArray(moves_array, cJSON_CreateString(moves[i]));
-    }
-    cJSON_AddItemToObject(data, "move", moves_array);
-    
-    char *json_data = cJSON_Print(data);
-    char *response = send_request(MOVE_URL, json_data);
-    cJSON_Delete(data);
-    free(json_data);
-    return response;
+void free_memory(char* str) {
+    if (str) free(str);
 }
 
 void start_battle() {
-    while (1) {
-        printf("Battle starting...\n");
-        char *init_response = send_init_request();
-        printf("Init response: %s\n", init_response);
-        
-        // 解析 JSON 响应
-        cJSON *response = cJSON_Parse(init_response);
-        int code = cJSON_GetObjectItem(response, "code")->valueint;
-        
-        // 处理不同的状态码
-        if (code == 10000 || code == 10002 || code == 10003) {
-            printf("Code: %d\n", code);
-            // 替换为处理获取下一步的棋盘逻辑
-        } else {
-            printf("Unexpected code received: %d\n", code);
+    while (true) {
+        try {
+            printf("Sending Query request...\n");
+            char* init_response = send_init_request();
+            printf("%s\n", init_response);
+
+            json_object *jobj = json_tokener_parse(init_response);
+            json_object *code_obj;
+            json_object_object_get_ex(jobj, "code", &code_obj);
+            int code = json_object_get_int(code_obj);
+
+            if (strcmp(init_response, "game is over, do not query again") == 0) {
+                printf("Game is over.\n");
+                free_memory(init_response);
+                break;
+            }
+
+            json_object *board_obj;
+            if (code == 10000 || code == 10002 || code == 10003) {
+                json_object_object_get_ex(jobj, "board", &board_obj);
+                int board[8][8] = {0}; 
+
+                char* next_move = get_next_move(board, strcmp(WHITE, "true") == 0);
+                char* move_response = send_moves_request(next_move);
+                char* detail = parse_response_move(move_response);
+
+                printf("Move response is:\n");
+                printf("%s\n", detail);
+                printf("=============\n");
+
+                json_object *detail_obj;
+                json_object_object_get_ex(jobj, "code", &detail_obj);
+                int detail_code = json_object_get_int(detail_obj);
+                while (detail_code == 20000) {
+                    printf("Invalid move, please try again.\n");
+                    next_move = get_next_move(board);
+                    move_response = send_moves_request(next_move);
+                    detail = parse_response_move(move_response);
+                    json_object_object_get_ex(jobj, "code", &detail_obj);
+                    detail_code = json_object_get_int(detail_obj);
+                }
+
+                if (detail_code == 10001) {
+                    json_object *winner_obj;
+                    json_object_object_get_ex(jobj, "winner", &winner_obj);
+                    printf("%s\n", json_object_get_string(winner_obj));
+                    return;
+                }
+            } else if (code == 30000) {
+                printf("Move timed out, continue moving.\n");
+            } else if (code == 30001) {
+                printf("Repeated moves exceeded 3 times, failed.\n");
+                return;
+            } else if (code == 10001) {
+                printf("Final Board:\n%s\n", init_response);
+                return;
+            } else {
+                printf("Unexpected code received: %d\n", code);
+                return;
+            }
+        } catch (const char* e) {
+            printf("An error occurred: %s\n", e);
             break;
         }
-
-        free(init_response);
-        cJSON_Delete(response);
     }
 }
 
-int main() {
-    start_battle();
-    return 0;
+MoveList* get_next_move(int board[8][8], bool white) {
+    return 
+}
+
+char* send_init_request() {
+    CURL* curl;
+    CURLcode res;
+    char* response_data = malloc(4096);
+
+    curl_global_init(CURL_GLOBAL_ALL);
+    curl = curl_easy_init();
+    if(curl) {
+        struct curl_slist *headers = NULL;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+
+        // Prepare JSON data
+        char json_data[100];
+        snprintf(json_data, sizeof(json_data), "{\"token\": \"%s\"}", TOKEN);
+
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_URL, QUERY_URL);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_data);
+        res = curl_easy_perform(curl);
+
+        if (res != CURLE_OK) {
+            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        }
+
+        curl_easy_cleanup(curl);
+    }
+    return response_data;
+}
+
+char* parse_response_move(const char* move_response) {
+    return strdup(move_response);
+}
+
+char* send_moves_request(const char* next_move) {
+    CURL* curl;
+    CURLcode res;
+    char* response_data = malloc(4096);
+
+    curl_global_init(CURL_GLOBAL_ALL);
+    curl = curl_easy_init();
+    if(curl) {
+        struct curl_slist *headers = NULL;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+
+        // Prepare JSON data
+        char json_data[100];
+        snprintf(json_data, sizeof(json_data), "{\"token\": \"%s\", \"move\": \"%s\"}", TOKEN, next_move);
+
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_URL, MOVE_URL);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_data);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_data);
+        res = curl_easy_perform(curl);
+
+        if (res != CURLE_OK) {
+            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        }
+
+        curl_easy_cleanup(curl);
+    }
+    return response_data;
 }

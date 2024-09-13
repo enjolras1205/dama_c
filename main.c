@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <curl/curl.h>
 #include <cjson/cJSON.h>
-#include "solution.h"
+#include "board_handler.h"
 
 
 #define QUERY_URL "https://battle1024.ejoy.com/play/query"
@@ -11,19 +12,8 @@
 #define TOKEN getenv("token") // 获取环境变量 TOKEN
 #define WHITE getenv("white") // 获取环境变量 WHITE
 
-typedef struct {
-    int x, y;
-} Move;
-
-typedef struct {
-    Move* moves;
-    size_t size;
-} MoveList;
-
-
 char* send_init_request();
 char* parse_response_init(const char* init_response);
-char* get_next_move(int board[8][8], bool white);
 char* send_moves_request(const char* next_move);
 char* parse_response_move(const char* move_response);
 void start_battle();
@@ -35,27 +25,39 @@ void free_memory(char* str) {
 
 void start_battle() {
     while (true) {
-        try {
-            printf("Sending Query request...\n");
+        printf("Sending Query request...\n");
             char* init_response = send_init_request();
             printf("%s\n", init_response);
 
-            json_object *jobj = json_tokener_parse(init_response);
-            json_object *code_obj;
-            json_object_object_get_ex(jobj, "code", &code_obj);
-            int code = json_object_get_int(code_obj);
+            cJSON *jobj = cJSON_Parse(init_response);
+            if (jobj == NULL) {
+                fprintf(stderr, "Error parsing JSON\n");
+                free_memory(init_response);
+                break; // 错误处理
+            }
+            cJSON *code_obj = cJSON_GetObjectItem(jobj, "code");
+            int code = code_obj ? code_obj->valueint : -1;
 
             if (strcmp(init_response, "game is over, do not query again") == 0) {
                 printf("Game is over.\n");
                 free_memory(init_response);
+                cJSON_Delete(jobj);
                 break;
             }
 
-            json_object *board_obj;
+            cJSON *board_obj;
             if (code == 10000 || code == 10002 || code == 10003) {
-                json_object_object_get_ex(jobj, "board", &board_obj);
+                board_obj = cJSON_GetObjectItem(jobj, "board");
                 int board[8][8] = {0}; 
 
+                 // 将 JSON 棋盘数据解析到整形数组
+                for (int i = 0; i < 8; i++) {
+                    cJSON *row_obj = cJSON_GetArrayItem(board_obj, i);
+                    for (int j = 0; j < 8; j++) {
+                        cJSON *cell_obj = cJSON_GetArrayItem(row_obj, j);
+                        board[i][j] = cell_obj ? cell_obj->valueint : 0;  // 获取每个单元的值
+                    }
+                }
                 char* next_move = get_next_move(board, strcmp(WHITE, "true") == 0);
                 char* move_response = send_moves_request(next_move);
                 char* detail = parse_response_move(move_response);
@@ -64,22 +66,25 @@ void start_battle() {
                 printf("%s\n", detail);
                 printf("=============\n");
 
-                json_object *detail_obj;
-                json_object_object_get_ex(jobj, "code", &detail_obj);
-                int detail_code = json_object_get_int(detail_obj);
+                cJSON *detail_obj = cJSON_GetObjectItem(jobj, "code");
+                int detail_code = detail_obj ? detail_obj->valueint : -1;
+
                 while (detail_code == 20000) {
                     printf("Invalid move, please try again.\n");
-                    next_move = get_next_move(board);
+
+                    next_move = get_next_move(board, strcmp(WHITE, "true") == 0);
                     move_response = send_moves_request(next_move);
+
                     detail = parse_response_move(move_response);
-                    json_object_object_get_ex(jobj, "code", &detail_obj);
-                    detail_code = json_object_get_int(detail_obj);
+                    cJSON *code_obj = cJSON_GetObjectItem(detail_obj, "code");
+                    detail_code = code_obj ? code_obj->valueint : -1;
                 }
 
                 if (detail_code == 10001) {
-                    json_object *winner_obj;
-                    json_object_object_get_ex(jobj, "winner", &winner_obj);
-                    printf("%s\n", json_object_get_string(winner_obj));
+                    cJSON *winner_obj = cJSON_GetObjectItem(jobj, "winner");
+                    printf("%s\n", cJSON_GetStringValue(winner_obj));
+                    free_memory(init_response); // 确保释放之前的内存
+                    cJSON_Delete(jobj); // 释放 JSON 对象内存
                     return;
                 }
             } else if (code == 30000) {
@@ -94,16 +99,9 @@ void start_battle() {
                 printf("Unexpected code received: %d\n", code);
                 return;
             }
-        } catch (const char* e) {
-            printf("An error occurred: %s\n", e);
-            break;
-        }
     }
 }
 
-MoveList* get_next_move(int board[8][8], bool white) {
-    return 
-}
 
 char* send_init_request() {
     CURL* curl;
@@ -151,7 +149,6 @@ char* send_moves_request(const char* next_move) {
         struct curl_slist *headers = NULL;
         headers = curl_slist_append(headers, "Content-Type: application/json");
 
-        // Prepare JSON data
         char json_data[100];
         snprintf(json_data, sizeof(json_data), "{\"token\": \"%s\", \"move\": \"%s\"}", TOKEN, next_move);
 
@@ -169,4 +166,9 @@ char* send_moves_request(const char* next_move) {
         curl_easy_cleanup(curl);
     }
     return response_data;
+}
+
+int main() {
+    start_battle();
+    return 0;
 }

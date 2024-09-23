@@ -17,7 +17,7 @@ WORKDIR /app/bin
 USER admin
 
 # 编译主函数
-RUN gcc -o main main.c
+RUN g++ -I ./ -o main main.cpp solution.cpp -lcurl -I include -std=c++11
 
 # 运行主函数
 CMD ["./main"]

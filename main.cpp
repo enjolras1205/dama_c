@@ -8,14 +8,13 @@
 // Constants for URLs
 const std::string QUERY_URL = "https://battle1024.ejoy.com/play/query";
 const std::string MOVE_URL = "https://battle1024.ejoy.com/play/move";
-
 // Environment variables
 std::string TOKEN = std::getenv("token");
 std::string WHITE = std::getenv("white");
 
 // Function prototypes
 json send_init_request();
-json send_moves_request(const vector<vector<string>> &next_move);
+json send_moves_request(const std::vector<std::vector<std::string>> &next_move);
 json parse_response_init(const std::string &init_response);
 json parse_response_move(const std::string &move_response);
 void start_battle();
@@ -50,7 +49,7 @@ json send_init_request() {
     return parse_response_init(read_buffer);
 }
 
-json send_moves_request(const vector<vector<string>> &next_move) {
+json send_moves_request(const std::vector<std::vector<std::string>> &next_move) {
     CURL *curl;
     CURLcode res;
     std::string read_buffer;
@@ -87,7 +86,6 @@ json parse_response_move(const std::string &move_response) {
 }
 
 void start_battle() {
-    Solution solution;
     while (true) {
         try {
             std::cout << "Sending Query request...\n";
@@ -100,13 +98,13 @@ void start_battle() {
             }
 
             if (init_response["code"] == 10000 || init_response["code"] == 10002 || init_response["code"] == 10003) {
-                vector<vector<string>> next_move = solution.get_next_move(init_response, WHITE == "true");
+                std::vector<std::vector<std::string>> next_move = Solution::get_next_move(init_response, WHITE == "true");
                 json move_response = send_moves_request(next_move);
                 std::cout << "Move response:\n" << move_response.dump(4) << std::endl;
 
                 while (move_response["code"] == 20000) {
                     std::cout << "Invalid move, please try again.\n";
-                    vector<vector<string>> next_move = solution.get_next_move(move_response, WHITE == "true");
+                    std::vector<std::vector<std::string>> next_move = Solution::get_next_move(move_response, WHITE == "true");
                     move_response = send_moves_request(next_move);
                 }
                 if (move_response["code"] == 10001) {
@@ -115,7 +113,7 @@ void start_battle() {
                 }
             } else if (init_response["code"] == 30000) {
                 std::cout << "落子超时，继续下子\n";
-                vector<vector<string>> next_move = solution.get_next_move(init_response, WHITE == "true");
+                std::vector<std::vector<std::string>> next_move = Solution::get_next_move(init_response, WHITE == "true");
                 json move_response = send_moves_request(next_move);
                 // Handle invalid moves
             } else if (init_response["code"] == 30001) {

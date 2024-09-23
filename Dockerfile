@@ -13,11 +13,11 @@ COPY . /app/bin
 
 WORKDIR /app/bin
 
-# 切回普通用户
-USER admin
-
 # 编译主函数
 RUN g++ -I ./ -o main main.cpp solution.cpp -lcurl -I include -std=c++11
+
+# 切回普通用户
+USER admin
 
 # 运行主函数
 CMD ["./main"]

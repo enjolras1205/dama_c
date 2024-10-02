@@ -97,6 +97,16 @@ void start_battle() {
                 break;
             }
 
+            if(init_response["code"] == 10001) {
+                std::cout << "Game is over, server will soon close\n";
+                break;
+            }
+
+            if(init_response["code"] == 10004) {
+                std::cout << "等待对方落子, 继续query轮询\n";
+                continue;
+            }
+
             if (init_response["code"] == 10000 || init_response["code"] == 10002 || init_response["code"] == 10003) {
                 std::vector<std::vector<std::string>> next_move = Solution::get_next_move(init_response, WHITE == "true");
                 json move_response = send_moves_request(next_move);

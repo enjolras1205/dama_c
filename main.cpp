@@ -91,9 +91,9 @@ void start_battle() {
             std::cout << "Sending Query request...\n";
             json init_response = send_init_request();
             std::cout << init_response.dump(4) << std::endl;
-            
-            if (init_response == "game is over, do not query again") {
-                std::cout << "Game is over\n";
+
+            if(init_response["code"] == 10005) {
+                std::cout << "room server is close\n";
                 break;
             }
 

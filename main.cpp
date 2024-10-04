@@ -9,8 +9,15 @@
 const std::string QUERY_URL = "https://battle1024.ejoy.com/play/query";
 const std::string MOVE_URL = "https://battle1024.ejoy.com/play/move";
 // Environment variables
-std::string TOKEN = std::getenv("token");
-std::string WHITE = std::getenv("white");
+char *char_TOKEN = std::getenv("token");
+char *char_WHITE = std::getenv("white");
+char *char_GAME_ID = std::getenv("game_id");
+char *char_AI_NAME = std::getenv("ai_name");
+
+std::string TOKEN(char_TOKEN ? char_TOKEN: "");
+std::string WHITE(char_WHITE ? char_WHITE: "");
+std::string GAME_ID(char_GAME_ID ? char_GAME_ID: "");
+std::string AI_NAME(char_AI_NAME ? char_AI_NAME: "");
 
 // Function prototypes
 json send_init_request();
@@ -22,6 +29,12 @@ void start_battle();
 size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     ((std::string*)userp)->append((char*)contents, size * nmemb);
     return size * nmemb;
+}
+
+void log(std::string msg, std::string log_level = "info") {
+    json j = {{"msg", msg}};
+    std::cout << "[" << log_level << "]" << "[" << "game_id: " << GAME_ID
+        << ", white: " << WHITE << ", ai_name: " << AI_NAME << "] " << j.dump() << std::endl;
 }
 
 json send_init_request() {
@@ -88,57 +101,56 @@ json parse_response_move(const std::string &move_response) {
 void start_battle() {
     while (true) {
         try {
-            std::cout << "Sending Query request...\n";
+            log("Sending Query request...");
             json init_response = send_init_request();
-            std::cout << init_response.dump(4) << std::endl;
+            log(init_response.dump());
 
             if(init_response["code"] == 10005) {
-                std::cout << "room server is close\n";
+                log("room server is close");
                 break;
             }
 
             if(init_response["code"] == 10001) {
-                std::cout << "Game is over, server will soon close\n";
+                log("Game is over, server will soon close");
                 break;
             }
 
             if(init_response["code"] == 10004) {
-                std::cout << "等待对方落子, 继续query轮询\n";
+                log("等待对方落子, 继续query轮询");
                 continue;
             }
 
             if (init_response["code"] == 10000 || init_response["code"] == 10002 || init_response["code"] == 10003) {
                 std::vector<std::vector<std::string>> next_move = Solution::get_next_move(init_response, WHITE == "true");
                 json move_response = send_moves_request(next_move);
-                std::cout << "Move response:\n" << move_response.dump(4) << std::endl;
+                log((std::string)"Move response:" +  move_response.dump());
 
                 while (move_response["code"] == 20000) {
-                    std::cout << "Invalid move, please try again.\n";
+                    log("Invalid move, please try again.");
                     std::vector<std::vector<std::string>> next_move = Solution::get_next_move(move_response, WHITE == "true");
                     move_response = send_moves_request(next_move);
                 }
                 if (move_response["code"] == 10001) {
-                    std::cout << move_response["winner"] << std::endl;
+                    log((std::string)"winner: " + move_response["winner"].dump());
                     return;
                 }
             } else if (init_response["code"] == 30000) {
-                std::cout << "落子超时，继续下子\n";
+                log("落子超时，继续下子");
                 std::vector<std::vector<std::string>> next_move = Solution::get_next_move(init_response, WHITE == "true");
                 json move_response = send_moves_request(next_move);
                 // Handle invalid moves
             } else if (init_response["code"] == 30001) {
-                std::cout << "重复移动棋子超过3次，失败\n";
+                log("重复移动棋子超过3次，失败");
                 return;
             } else if (init_response["code"] == 10001) {
-                std::cout << init_response["board"] << std::endl;
-                std::cout << init_response.value("winner", "") << std::endl;
+                log((std::string)"winner: " + init_response["winner"].dump() + ", board: " +  init_response["board"].dump());
                 return;
             } else {
-                std::cout << "Unexpected code received: " << init_response["code"] << std::endl;
+                log((std::string)"Unexpected code received: " + init_response["code"].dump());
                 return;
             }
         } catch (const std::exception &e) {
-            std::cout << "An error occurred: " << e.what() << std::endl;
+            log((std::string)"An error occurred: " + e.what());
             break;
         }
     }

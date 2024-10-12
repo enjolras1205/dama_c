@@ -8,21 +8,20 @@
 
 
 // Constants for URLs
-// const std::string QUERY_URL = "https://battle1024.ejoy.com/play/query";
-// const std::string MOVE_URL = "https://battle1024.ejoy.com/play/move";
-const std::string QUERY_URL = "http://plat1024-battle-service:4000/play/query";
-const std::string MOVE_URL = "http://plat1024-battle-service:4000/play/move";
 // Environment variables
 char *char_TOKEN = std::getenv("token");
 char *char_WHITE = std::getenv("white");
 char *char_GAME_ID = std::getenv("game_id");
 char *char_AI_NAME = std::getenv("ai_name");
+char *char_IS_BATTLE_DEV = std::getenv("is_battle_dev");
 
 std::string TOKEN(char_TOKEN ? char_TOKEN: "");
 std::string WHITE(char_WHITE ? char_WHITE: "");
 std::string GAME_ID(char_GAME_ID ? char_GAME_ID: "");
 std::string AI_NAME(char_AI_NAME ? char_AI_NAME: "");
 
+const std::string QUERY_URL(char_IS_BATTLE_DEV ? "https://battle1024.ejoy.com/play/query": "http://plat1024-battle-service:4000/play/query");
+const std::string MOVE_URL(char_IS_BATTLE_DEV ? "https://battle1024.ejoy.com/play/move": "http://plat1024-battle-service:4000/play/move");
 
 // Function prototypes
 json send_init_request();

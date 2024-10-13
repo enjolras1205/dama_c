@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <curl/curl.h>
 #include "solution.h"
+#include "unit_test.h"
 
 
 // Constants for URLs
@@ -13,11 +14,13 @@ char *char_TOKEN = std::getenv("token");
 char *char_WHITE = std::getenv("white");
 char *char_GAME_ID = std::getenv("game_id");
 char *char_AI_NAME = std::getenv("ai_name");
+char *char_LOCAL_BATTLE = std::getenv("local_battle");
 
 std::string TOKEN(char_TOKEN ? char_TOKEN: "");
 std::string WHITE(char_WHITE ? char_WHITE: "");
 std::string GAME_ID(char_GAME_ID ? char_GAME_ID: "");
 std::string AI_NAME(char_AI_NAME ? char_AI_NAME: "");
+std::string LOCAL_BATTLE(char_LOCAL_BATTLE ? char_LOCAL_BATTLE: "");
 
 // Function prototypes
 json send_init_request();
@@ -156,7 +159,17 @@ void start_battle() {
     }
 }
 
+void local_battle() 
+{
+}
+
 int main() {
-    start_battle();
+    if (LOCAL_BATTLE == "true") {
+        // local_battle();
+        run_test();
+    } else {
+        start_battle();
+    }
+
     return 0;
 }

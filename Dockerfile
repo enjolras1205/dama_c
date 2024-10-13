@@ -14,7 +14,7 @@ COPY . /app/bin
 WORKDIR /app/bin
 
 # 编译主函数
-RUN g++ -I ./ -o main main.cpp solution.cpp -lcurl -I include -std=c++11
+RUN g++ -I ./ -o main main.cpp solution.cpp unit_test.cpp -lcurl -I include -std=c++11
 
 # 切回普通用户
 USER admin

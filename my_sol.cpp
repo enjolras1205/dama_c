@@ -17,7 +17,7 @@ inline void get_max_eat_moves(const Moves &moves, Moves &max_moves) {
 
 // 将服务器返回转成 0x88 棋盘
 // [{"value": 0, "index": ["a", "8"]}, ...]
-void MySolution::get_board(const json &response, bool white, Board &board)
+void MySolution::get_board(const json &response, Board &board)
 {
     auto &board_data = response["board"];
     for (auto &v : board_data) {
@@ -31,7 +31,7 @@ void MySolution::get_board(const json &response, bool white, Board &board)
     }
 }
 
-void MySolution::get_moves(Board &board, Moves &moves, bool white)
+void MySolution::get_moves(Board &board, Moves &moves, bool is_white)
 {
     moves.clear();
     // 找到所有棋子
@@ -42,18 +42,9 @@ void MySolution::get_moves(Board &board, Moves &moves, bool white)
             // 水平移动
             // 0,1,2,3,4,5,6,7 ...
             auto chess = board[idx];
-            if (white) {
-                if (is_white_solider(chess)) {
-                    Moves moves;
-                } else if (is_white_king(chess)) {
-
-                }
-            } else {
-                if (is_black_solider(chess)) {
-                    Moves moves;
-                } else if (is_black_king(chess)) {
-
-                }
+            bool is_my = is_my_chess(is_white, chess);
+            if (is_my) {
+                this->get_press_moves(board, moves, idx);
             }
             idx += 1;
         }
@@ -136,8 +127,35 @@ bool MySolution::get_eat_moves(const Board &board, BoardFlag &moved, Moves &move
     return eaten;
 }
 
-void MySolution::get_press_moves(const Board & board, Moves & moves, int idx, bool is_white, bool is_king)
+void MySolution::get_press_moves(const Board & board, Moves & moves, int idx)
 {
+    bool is_white = true;
+    bool is_king = false;
+    int chess = board[idx];
+
+    switch (chess) {
+        case white_soldier: {
+            break;
+        }
+        case white_king: {
+            is_king = true;
+            break;
+        }
+        case black_soldier: {
+            is_white = false;
+            break;
+        }
+        case black_king: {
+            is_white = false;
+            is_king = true;
+            break;
+        }
+        default: {
+            std::cout << "error1: unknown press type" << endl;
+            break;
+        }
+    }
+
     MoveDirections directions;
     if (is_king) {
         directions = MoveDirections{-1, 1, BOARD_LINE_SIZE, -BOARD_LINE_SIZE};

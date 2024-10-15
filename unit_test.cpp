@@ -75,7 +75,7 @@ void test4(MySolution &sol) {
 
     Moves moves;
     Moves expect_moves = {{50, 49}, {50, 51}, {50, 82, 80, 112}, {50, 82, 84, 116}};
-    sol.get_press_moves(board, moves, 50, true, false);
+    sol.get_press_moves(board, moves, 50);
     assert (moves == expect_moves);
 }
 
@@ -93,7 +93,7 @@ void test5(MySolution &sol) {
 
     Moves moves;
     Moves expect_moves = {{66, 65}, {66, 34, 32, 0}, {66, 34, 36, 4}};
-    sol.get_press_moves(board, moves, 66, false, false);
+    sol.get_press_moves(board, moves, 66);
     assert (moves == expect_moves);
 }
 
@@ -111,7 +111,7 @@ void test6(MySolution &sol) {
 
     Moves moves;
     Moves expect_moves = {{66, 64}, {66, 68}, {66, 34}};
-    sol.get_press_moves(board, moves, 66, false, false);
+    sol.get_press_moves(board, moves, 66);
     assert (moves == expect_moves);
 }
 
@@ -131,7 +131,7 @@ void test7(MySolution &sol) {
     Moves expect_moves = {
         {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7},
         {0, 16}, {0, 32}, {0, 48}, {0, 64}};
-    sol.get_press_moves(board, moves, 0, false, true);
+    sol.get_press_moves(board, moves, 0);
     assert (moves == expect_moves);
 }
 
@@ -151,7 +151,7 @@ void test8(MySolution &sol) {
     Moves expect_moves = {
         {0, 2, 4, 7}, {0, 2, 5, 7}
     };
-    sol.get_press_moves(board, moves, 0, false, true);
+    sol.get_press_moves(board, moves, 0);
     assert (moves == expect_moves);
 }
 
@@ -171,7 +171,7 @@ void test9(MySolution &sol) {
     Moves expect_moves = {
         {0, 1}, {0, 3, 7}, {0, 4, 7}, {0, 5, 7}
     };
-    sol.get_press_moves(board, moves, 0, false, true);
+    sol.get_press_moves(board, moves, 0);
     assert (moves == expect_moves);
 }
 
@@ -192,7 +192,7 @@ void test10(MySolution &sol) {
         {16, 17}, {16, 19, 21, 23, 55, 53, 50},{16, 19, 21, 23, 55, 53, 49},
         {16, 19, 21, 23, 55, 52, 50},{16, 19, 21, 23, 55, 52, 49}
     };
-    sol.get_press_moves(board, moves, 16, false, true);
+    sol.get_press_moves(board, moves, 16);
     assert (moves == expect_moves);
 }
 

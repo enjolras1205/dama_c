@@ -19,9 +19,9 @@ inline void get_max_eat_moves(const Moves &moves, Moves &max_moves) {
 // [{"value": 0, "index": ["a", "8"]}, ...]
 void MySolution::get_board(const json &response, Board &board)
 {
-    auto &board_data = response["board"];
+    auto &board_data = response;
+    const char a = 'a';
     for (auto &v : board_data) {
-        const char a = 'a';
         const string &idx_1 = v["index"][0];
         const string &idx_2 = v["index"][1];
         uint16_t idx = 0;
@@ -29,6 +29,38 @@ void MySolution::get_board(const json &response, Board &board)
         idx += (BOARD_BOUND_SIZE - std::stoi(idx_2)) * 16;
         board[idx] = v["value"];
     }
+}
+
+void MySolution::transfer_move(const Move & move, JsonMove &json_move)
+{
+    json_move.clear();
+    const char a = 'a';
+    for (auto v : move) {
+        char line = a + (v % BOARD_LINE_SIZE);
+        int row = BOARD_BOUND_SIZE - v / BOARD_LINE_SIZE;
+
+        json_move.push_back({std::string(1, line), std::to_string(row)});
+    }
+}
+
+void MySolution::print_board(const Board & board)
+{
+    int idx = 0;
+    while (!(idx & 0x88)) {
+        int row = BOARD_BOUND_SIZE - idx / BOARD_LINE_SIZE;
+        cout << row << ": ";
+        while (!(idx & 0x88)) {
+            // 水平移动
+            // 0,1,2,3,4,5,6,7 ...
+            auto chess = board[idx];
+            cout << std::to_string(chess) << " ";
+            idx += 1;
+        }
+        cout << std::endl;
+        // 垂直移动
+        idx += BOARD_BOUND_SIZE;
+    }
+    cout << "   a b c d e f g h" << std::endl;
 }
 
 void MySolution::get_moves(Board &board, Moves &moves, bool is_white)
@@ -48,7 +80,6 @@ void MySolution::get_moves(Board &board, Moves &moves, bool is_white)
             }
             idx += 1;
         }
-        cout << std::endl;
         // 垂直移动
         idx += BOARD_BOUND_SIZE;
     }

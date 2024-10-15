@@ -196,6 +196,15 @@ void test10(MySolution &sol) {
     assert (moves == expect_moves);
 }
 
+void test11(MySolution &sol)
+{
+    Move move = {0, 1};
+    JsonMove json_move;
+    JsonMove expect_move = {{"a", "8"}, {"b", "8"}};
+    MySolution::transfer_move(move, json_move);
+    assert (json_move == expect_move);
+}
+
 void run_test()
 {
     MySolution sol;
@@ -209,4 +218,5 @@ void run_test()
     test8(sol);
     test9(sol);
     test10(sol);
+    test11(sol);
 }

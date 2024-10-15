@@ -7,16 +7,16 @@
 #include <bitset>
 #include <iostream>
 
-constexpr int pos_out_of_board = 0;
-constexpr int pos_empty = 1;
-constexpr int pos_white = 2;
-constexpr int pos_black = 3;
+constexpr int8_t pos_out_of_board = 0;
+constexpr int8_t pos_empty = 1;
+constexpr int8_t pos_white = 2;
+constexpr int8_t pos_black = 3;
 
-constexpr int empty_chess = 0;
-constexpr int white_soldier = 1;
-constexpr int white_king = 2;
-constexpr int black_soldier = 3;
-constexpr int black_king = 4;
+constexpr int8_t empty_chess = 0;
+constexpr int8_t white_soldier = 1;
+constexpr int8_t white_king = 2;
+constexpr int8_t black_soldier = 3;
+constexpr int8_t black_king = 4;
 constexpr int BOARD_BOUND_SIZE = 8;
 constexpr int BOARD_LINE_SIZE = BOARD_BOUND_SIZE * 2;
 constexpr int BOARD_SIZE = BOARD_BOUND_SIZE * BOARD_BOUND_SIZE * 2;
@@ -30,7 +30,7 @@ constexpr int BOARD_SIZE = BOARD_BOUND_SIZE * BOARD_BOUND_SIZE * 2;
 // 一次移动。[idx1, idx2, ... idxN]
 // H6 -> H4 -> F4 ...
 using Move = std::vector<int>;
-using MoveDirections = std::vector<int>;
+using MoveDirections = std::vector<int8_t>;
 
 // 1 白兵
 // 2 白王
@@ -46,8 +46,10 @@ using MoveDirections = std::vector<int>;
 // 2 3 3 3 3 3 3 3 3 
 // 1 0 0 0 0 0 0 0 0 
 //   A B C D E F G H
-using Board = std::array<int, BOARD_SIZE>;
+using Board = std::array<int8_t, BOARD_SIZE>;
 using Moves = std::vector<Move>;
+
+using JsonMove = std::vector<std::vector<std::string>>;
 using BoardFlag = std::bitset<BOARD_SIZE>;
 
 inline bool is_white_chess(int chess) {

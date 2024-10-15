@@ -111,17 +111,30 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named main
+# Target rules for targets named main_release
 
 # Build rule for target.
-main: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 main
-.PHONY : main
+main_release: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 main_release
+.PHONY : main_release
 
 # fast build rule for target.
-main/fast:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
-.PHONY : main/fast
+main_release/fast:
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/build
+.PHONY : main_release/fast
+
+#=============================================================================
+# Target rules for targets named main_debug
+
+# Build rule for target.
+main_debug: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 main_debug
+.PHONY : main_debug
+
+# fast build rule for target.
+main_debug/fast:
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/build
+.PHONY : main_debug/fast
 
 main.o: main.cpp.o
 
@@ -129,7 +142,8 @@ main.o: main.cpp.o
 
 # target to build an object file
 main.cpp.o:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.o
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/main.cpp.o
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/main.cpp.o
 .PHONY : main.cpp.o
 
 main.i: main.cpp.i
@@ -138,7 +152,8 @@ main.i: main.cpp.i
 
 # target to preprocess a source file
 main.cpp.i:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.i
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/main.cpp.i
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/main.cpp.i
 .PHONY : main.cpp.i
 
 main.s: main.cpp.s
@@ -147,7 +162,8 @@ main.s: main.cpp.s
 
 # target to generate assembly for a file
 main.cpp.s:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.s
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/main.cpp.s
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/main.cpp.s
 .PHONY : main.cpp.s
 
 my_sol.o: my_sol.cpp.o
@@ -156,7 +172,8 @@ my_sol.o: my_sol.cpp.o
 
 # target to build an object file
 my_sol.cpp.o:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/my_sol.cpp.o
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/my_sol.cpp.o
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/my_sol.cpp.o
 .PHONY : my_sol.cpp.o
 
 my_sol.i: my_sol.cpp.i
@@ -165,7 +182,8 @@ my_sol.i: my_sol.cpp.i
 
 # target to preprocess a source file
 my_sol.cpp.i:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/my_sol.cpp.i
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/my_sol.cpp.i
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/my_sol.cpp.i
 .PHONY : my_sol.cpp.i
 
 my_sol.s: my_sol.cpp.s
@@ -174,7 +192,8 @@ my_sol.s: my_sol.cpp.s
 
 # target to generate assembly for a file
 my_sol.cpp.s:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/my_sol.cpp.s
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/my_sol.cpp.s
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/my_sol.cpp.s
 .PHONY : my_sol.cpp.s
 
 solution.o: solution.cpp.o
@@ -183,7 +202,8 @@ solution.o: solution.cpp.o
 
 # target to build an object file
 solution.cpp.o:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/solution.cpp.o
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/solution.cpp.o
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/solution.cpp.o
 .PHONY : solution.cpp.o
 
 solution.i: solution.cpp.i
@@ -192,7 +212,8 @@ solution.i: solution.cpp.i
 
 # target to preprocess a source file
 solution.cpp.i:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/solution.cpp.i
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/solution.cpp.i
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/solution.cpp.i
 .PHONY : solution.cpp.i
 
 solution.s: solution.cpp.s
@@ -201,7 +222,8 @@ solution.s: solution.cpp.s
 
 # target to generate assembly for a file
 solution.cpp.s:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/solution.cpp.s
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/solution.cpp.s
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/solution.cpp.s
 .PHONY : solution.cpp.s
 
 unit_test.o: unit_test.cpp.o
@@ -210,7 +232,8 @@ unit_test.o: unit_test.cpp.o
 
 # target to build an object file
 unit_test.cpp.o:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/unit_test.cpp.o
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/unit_test.cpp.o
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/unit_test.cpp.o
 .PHONY : unit_test.cpp.o
 
 unit_test.i: unit_test.cpp.i
@@ -219,7 +242,8 @@ unit_test.i: unit_test.cpp.i
 
 # target to preprocess a source file
 unit_test.cpp.i:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/unit_test.cpp.i
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/unit_test.cpp.i
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/unit_test.cpp.i
 .PHONY : unit_test.cpp.i
 
 unit_test.s: unit_test.cpp.s
@@ -228,7 +252,8 @@ unit_test.s: unit_test.cpp.s
 
 # target to generate assembly for a file
 unit_test.cpp.s:
-	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/unit_test.cpp.s
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/unit_test.cpp.s
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/unit_test.cpp.s
 .PHONY : unit_test.cpp.s
 
 # Help Target
@@ -239,7 +264,8 @@ help:
 	@echo "... depend"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... main"
+	@echo "... main_release"
+	@echo "... main_debug"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

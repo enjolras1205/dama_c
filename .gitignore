@@ -1,4 +1,5 @@
-main
+main_debug
+main_release
 
 build/
 CMakeFiles/

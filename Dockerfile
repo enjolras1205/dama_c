@@ -14,11 +14,11 @@ COPY . /app/bin
 WORKDIR /app/bin
 
 # 编译主函数
-# RUN g++ -I ./ -o main main.cpp solution.cpp unit_test.cpp -lcurl -I include -std=c++11
-RUN make main_debug
+RUN g++ -I ./ -o main main.cpp solution.cpp unit_test.cpp my_sol.cpp -lcurl -I include -std=c++11
+# RUN make main_debug
 
 # 切回普通用户
 USER admin
 
 # 运行主函数
-CMD ["./main_debug"]
+CMD ["./main"]

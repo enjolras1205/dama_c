@@ -70,6 +70,151 @@ void MySolution::print_board(const Board & board)
     cout << "   a b c d e f g h" << std::endl;
 }
 
+int MySolution::calc_board(const Board & board, bool is_white)
+{
+    int point = 0;
+    int idx = 0;
+    while (!(idx & 0x88)) {
+        while (!(idx & 0x88)) {
+            auto chess = board[idx];
+            if (chess == empty_chess) {
+                idx += 1;
+                continue;
+            }
+            bool is_chess_white = true;
+            bool is_chess_king = false;
+            switch (chess)
+            {
+            case white_king: {
+                is_chess_king = true;
+                break;
+            }
+            case black_soldier: {
+                is_chess_white = false;
+                break;
+            }
+            case black_king: {
+                is_chess_white = false;
+                is_chess_king = true;
+                break;
+            }
+            default:
+                break;
+            }
+            int change_point = solider_point;
+            if (is_chess_king) {
+                change_point = king_point;
+            }
+            if (is_white == is_chess_white) {
+                point += change_point;
+            } else {
+                point -= change_point;
+            }
+            idx += 1;
+        }
+        idx += BOARD_BOUND_SIZE;
+    }
+    return point;
+}
+
+Move MySolution::get_best_move(Board & board, bool is_white)
+{
+    MoveOps ops;
+    this->alpha_beta(board, is_white, ops, -9999, 9999, this->max_depth);
+    return this->best_move;
+}
+
+void MySolution::do_move(Board & board, const Move & move, MoveOps & ops, bool is_white)
+{
+    // 拿走起始的棋子
+    auto start_idx = move[0];
+    auto start_chess = board[start_idx];
+    ops.push_back(MoveOp({-start_idx, board[start_idx]}));
+    board[start_idx] = empty_chess;
+    // 拿走吃的棋子
+    for (size_t i = 1; i < move.size(); ++i) {
+        auto start_idx = move[i - 1];
+        auto end_idx = move[i];
+        if (end_idx < start_idx) {
+            std::swap(start_idx, end_idx);
+        }
+        // 默认水平遍历
+        int direction = 1;
+        if (end_idx - start_idx > BOARD_BOUND_SIZE) {
+            // 垂直
+            direction = BOARD_LINE_SIZE;
+        }
+        auto idx = start_idx + direction;
+        while (idx < end_idx) {
+            // 如果有对方棋子
+            int chess = board[idx];
+            if (chess != empty_chess && is_my_chess(is_white, chess)) {
+                ops.push_back(MoveOp({-idx, board[idx]}));
+                board[idx] = empty_chess;
+            }
+            idx += direction;
+        }
+    }
+
+    // 把开始的棋子放在结束处
+    auto end_idx = move.back();
+    ops.push_back(MoveOp({end_idx, board[end_idx]}));
+    board[end_idx] = start_chess;
+}
+
+void MySolution::undo_move(Board & board, MoveOps & ops)
+{
+    for (MoveOps::const_reverse_iterator r_iter = ops.rbegin(); r_iter != ops.rend(); ++r_iter) { 
+        auto idx = (*r_iter)[0];
+        auto chess = (*r_iter)[1];
+        if (idx < 0) {
+            board[-idx] = chess;
+        } else {
+            board[idx] = empty_chess;
+        }
+    } 
+    ops.clear();
+}
+
+int MySolution::alpha_beta(Board &board, bool is_white, MoveOps &ops, int alpha, int beta, int depth) {
+    if (depth == 0) {
+        return MySolution::calc_board(board, is_white);
+    }
+
+    // 生成全部走法;
+    Moves moves;
+    this->get_moves(board, moves, is_white);
+    if (moves.size() == 0) {
+        // 没有棋走了．输
+        MySolution::print_board(board);
+        return -INT32_MAX;
+    }
+
+    // TODO:按历史表排序全部走法;
+    int best_idx = 0;
+    int current_point;
+    for (int i = 0; i < moves.size(); ++i) {
+        this->do_move(board, moves[i], ops, is_white);
+        current_point = -alpha_beta(board, !is_white, ops, -beta, -alpha, depth - 1);
+        this->undo_move(board, ops);
+        if (current_point >= beta) {
+            // TODO:记录到历史表
+            return beta;
+        }
+        if (current_point > alpha) {
+            alpha = current_point;
+            best_idx = i;
+        }
+    }
+
+    // TODO:记录最佳走法到历史表
+    if (depth == this->max_depth) {
+        this->best_move = moves[best_idx];
+    }
+
+    return alpha;
+}
+
 void MySolution::get_moves(Board &board, Moves &moves, bool is_white)
 {
     moves.clear();

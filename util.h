@@ -7,6 +7,9 @@
 #include <bitset>
 #include <iostream>
 
+const int solider_point = 100;
+const int king_point = 250;
+
 constexpr int8_t pos_out_of_board = 0;
 constexpr int8_t pos_empty = 1;
 constexpr int8_t pos_white = 2;
@@ -31,6 +34,10 @@ constexpr int BOARD_SIZE = BOARD_BOUND_SIZE * BOARD_BOUND_SIZE * 2;
 // H6 -> H4 -> F4 ...
 using Move = std::vector<int>;
 using MoveDirections = std::vector<int8_t>;
+// 走子时产生的操作，可以是拿走/放下一个棋子
+// [idx, chess] idx > 0 放下，idx < 0 拿走
+using MoveOp = std::array<int, 2>;
+using MoveOps = std::vector<MoveOp>;
 
 // 1 白兵
 // 2 白王

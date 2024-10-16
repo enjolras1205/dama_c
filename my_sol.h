@@ -10,8 +10,17 @@ public:
     static void transfer_move(const Move &move, JsonMove &json_move);
     static void print_board(const json & response);
     static void print_board(const Board &board);
+    static int calc_board(const Board &board, bool is_white);
+
+    //　获得最好走法
+    Move get_best_move(Board &board, bool is_white);
+    // 走ＸＸ走法
+    void do_move(Board &board, const Move &move, MoveOps &ops, bool is_white);
+    void undo_move(Board &board, MoveOps &ops);
+    // alpha beta func
+    int alpha_beta(Board & board, bool is_white, MoveOps &ops, int alpha, int beta, int depth);
     // 获得棋盘上所有走法
-    void get_moves(Board &board, Moves& moves, bool white);
+    void get_moves(Board &board, Moves& moves, bool is_white);
     // dfs吃子
     // board: 棋盘
     // moved: 已走点
@@ -26,6 +35,10 @@ public:
     // 获得某个棋子可能的所有移动，返回是否有吃子
     bool get_press_moves(const Board &board, Moves &moves, int idx);
 private:
+    // 最佳走法
+    Move best_move;
+    // 最大搜索深度
+    int max_depth = 6;
     // 当前轮次
     int round;
     // 上个reduction,　开始前赋值为cur_reduction

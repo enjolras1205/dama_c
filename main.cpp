@@ -183,6 +183,7 @@ void local_battle()
 }
 
 int main() {
+    srand(time(NULL));
     if (LOCAL_BATTLE == "true") {
         // local_battle();
         // run_test();

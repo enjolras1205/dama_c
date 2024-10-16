@@ -43,6 +43,13 @@ void MySolution::transfer_move(const Move & move, JsonMove &json_move)
     }
 }
 
+void MySolution::print_board(const json & response)
+{
+    Board board;
+    MySolution::get_board(response, board);
+    MySolution::print_board(board);
+}
+
 void MySolution::print_board(const Board & board)
 {
     int idx = 0;
@@ -69,6 +76,7 @@ void MySolution::get_moves(Board &board, Moves &moves, bool is_white)
     // 找到所有棋子
     // 排序这些moves
     int idx = 0;
+    bool has_eaten = false;
     while (!(idx & 0x88)) {
         while (!(idx & 0x88)) {
             // 水平移动
@@ -76,12 +84,25 @@ void MySolution::get_moves(Board &board, Moves &moves, bool is_white)
             auto chess = board[idx];
             bool is_my = is_my_chess(is_white, chess);
             if (is_my) {
-                this->get_press_moves(board, moves, idx);
+                Moves one_press_moves;
+                bool is_eaten = this->get_press_moves(board, one_press_moves, idx);
+                if (!has_eaten && is_eaten) {
+                    // 之前没吃子，新吃子
+                    moves = std::move(one_press_moves);
+                    has_eaten = true;
+                } else if(is_eaten || !has_eaten) {
+                    moves.insert(moves.end(), one_press_moves.begin(), one_press_moves.end()); 
+                }
             }
             idx += 1;
         }
         // 垂直移动
         idx += BOARD_BOUND_SIZE;
+    }
+    if (has_eaten) {
+        Moves max_eat_moves;
+        get_max_eat_moves(moves, max_eat_moves);
+        moves = std::move(max_eat_moves);
     }
 }
 
@@ -95,19 +116,19 @@ bool MySolution::get_eat_moves(const Board &board, BoardFlag &moved, Moves &move
     // 兵吃子是跳到棋子后一格．王可能跳到任意格．
     // 如果跳的方向不变．
     bool eaten = false;
-    bool is_direction_block = false;
     while (!(next_pos & 0x88)) {
+        bool is_direction_block = false;
         int pos_type = get_board_pos_type(board, next_pos);
         switch (pos_type) {
             case pos_empty: {
                 // 空位，可以吃，继续寻找下一个跳跃点。
                 MoveDirections directions;
                 if (is_king) {
-                    directions = MoveDirections{-1, 1, BOARD_LINE_SIZE, -BOARD_LINE_SIZE};
+                    directions = MoveDirections{BOARD_LINE_SIZE, -BOARD_LINE_SIZE, -1, 1};
                 } else if (is_white) {
-                    directions = MoveDirections{-1, 1, BOARD_LINE_SIZE};
+                    directions = MoveDirections{BOARD_LINE_SIZE, -1, 1};
                 } else {
-                    directions = MoveDirections{-1, 1, -BOARD_LINE_SIZE};
+                    directions = MoveDirections{-BOARD_LINE_SIZE, -1, 1};
                 }
 
                 Move new_move = move;
@@ -158,7 +179,7 @@ bool MySolution::get_eat_moves(const Board &board, BoardFlag &moved, Moves &move
     return eaten;
 }
 
-void MySolution::get_press_moves(const Board & board, Moves & moves, int idx)
+bool MySolution::get_press_moves(const Board & board, Moves & moves, int idx)
 {
     bool is_white = true;
     bool is_king = false;
@@ -189,22 +210,26 @@ void MySolution::get_press_moves(const Board & board, Moves & moves, int idx)
 
     MoveDirections directions;
     if (is_king) {
-        directions = MoveDirections{-1, 1, BOARD_LINE_SIZE, -BOARD_LINE_SIZE};
+        directions = MoveDirections{BOARD_LINE_SIZE, -BOARD_LINE_SIZE, -1, 1};
     } else if (is_white) {
-        directions = MoveDirections{-1, 1, BOARD_LINE_SIZE};
+        directions = MoveDirections{BOARD_LINE_SIZE, -1, 1};
     } else {
-        directions = MoveDirections{-1, 1, -BOARD_LINE_SIZE};
+        directions = MoveDirections{-BOARD_LINE_SIZE, -1, 1};
     }
 
     Moves eat_moves;
-    bool is_direction_block = false;
+    bool is_eaten = false;
     for (int direction : directions) {
+        bool is_direction_block = false;
         int next_pos = idx + direction;
         while (!(next_pos & 0x88)) {
             int next_pos_type = get_board_pos_type(board, next_pos);
             switch (next_pos_type) {
                 case pos_empty: {
-                    moves.push_back(Move{idx, next_pos});
+                    if (!is_eaten) {
+                        // 如果没吃过子，记录普通移动，否则不记录．
+                        moves.push_back(Move{idx, next_pos});
+                    }
                     break;
                 }
                 case pos_white: {
@@ -212,7 +237,8 @@ void MySolution::get_press_moves(const Board & board, Moves & moves, int idx)
                     if (!is_white) {
                         BoardFlag flags; 
                         Move move = {idx};
-                        this->get_eat_moves(board, flags, eat_moves, move, next_pos, direction, is_white, is_king);
+                        is_eaten = this->get_eat_moves(board, flags,
+                            eat_moves, move, next_pos, direction, is_white, is_king) || is_eaten;
                     }
                     break;
                 }
@@ -221,7 +247,7 @@ void MySolution::get_press_moves(const Board & board, Moves & moves, int idx)
                     if (is_white) {
                         BoardFlag flags; 
                         Move move = {idx};
-                        this->get_eat_moves(board, flags, eat_moves, move, next_pos, direction, is_white, is_king);
+                        is_eaten = this->get_eat_moves(board, flags, eat_moves, move, next_pos, direction, is_white, is_king) || is_eaten;
                     }
                     break;
                 }
@@ -236,8 +262,8 @@ void MySolution::get_press_moves(const Board & board, Moves & moves, int idx)
         }
     }
 
-    Moves max_eat_moves;
-    get_max_eat_moves(eat_moves, max_eat_moves);
-    moves.insert(moves.end(), max_eat_moves.begin(), max_eat_moves.end());
-    return;
+    if (eat_moves.size() > 0) {
+        moves = std::move(eat_moves);
+    }
+    return is_eaten;
 }

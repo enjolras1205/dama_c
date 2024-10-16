@@ -8,6 +8,7 @@ class MySolution {
 public:
     static void get_board(const json & response, Board & board);
     static void transfer_move(const Move &move, JsonMove &json_move);
+    static void print_board(const json & response);
     static void print_board(const Board &board);
     // 获得棋盘上所有走法
     void get_moves(Board &board, Moves& moves, bool white);
@@ -22,8 +23,8 @@ public:
     // is_king: 是否王棋
     bool get_eat_moves(const Board &board, BoardFlag &moved, Moves &moves,
         Move &move, int eat_pos, int direction, bool is_white, bool is_king);
-    // 获得某个棋子可能的所有移动
-    void get_press_moves(const Board &board, Moves &moves, int idx);
+    // 获得某个棋子可能的所有移动，返回是否有吃子
+    bool get_press_moves(const Board &board, Moves &moves, int idx);
 private:
     // 当前轮次
     int round;

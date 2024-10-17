@@ -18,7 +18,7 @@ public:
     void do_move(Board &board, const Move &move, MoveOps &ops, bool is_white);
     void undo_move(Board &board, MoveOps &ops);
     // alpha beta func
-    int alpha_beta(Board & board, bool is_white, MoveOps &ops, int alpha, int beta, int depth);
+    int alpha_beta(Board & board, bool is_white, int alpha, int beta, int depth);
     // 获得棋盘上所有走法
     void get_moves(Board &board, Moves& moves, bool is_white);
     // dfs吃子

@@ -85,12 +85,22 @@ int MySolution::calc_board(const Board & board, bool is_white)
             bool is_chess_king = false;
             switch (chess)
             {
+            case white_soldier: {
+                if (idx >= BOARD_LAST_LINE_START) {
+                    is_chess_king = true;
+                }
+                break;
+            }
             case white_king: {
                 is_chess_king = true;
                 break;
             }
             case black_soldier: {
                 is_chess_white = false;
+                // 到底部变王
+                if (idx <= BOARD_BOUND_SIZE) {
+                    is_chess_king = true;
+                }
                 break;
             }
             case black_king: {
@@ -119,14 +129,14 @@ int MySolution::calc_board(const Board & board, bool is_white)
 
 Move MySolution::get_best_move(Board & board, bool is_white)
 {
-    MoveOps ops;
-    this->alpha_beta(board, is_white, ops, -9999, 9999, this->max_depth);
+    this->alpha_beta(board, is_white, -INT32_MAX, INT32_MAX, this->max_depth);
     return this->best_move;
 }
 
 void MySolution::do_move(Board & board, const Move & move, MoveOps & ops, bool is_white)
 {
     // 拿走起始的棋子
+    ops.clear();
     auto start_idx = move[0];
     auto start_chess = board[start_idx];
     ops.push_back(MoveOp({-start_idx, board[start_idx]}));
@@ -173,10 +183,9 @@ void MySolution::undo_move(Board & board, MoveOps & ops)
             board[idx] = empty_chess;
         }
     } 
-    ops.clear();
 }
 
-int MySolution::alpha_beta(Board &board, bool is_white, MoveOps &ops, int alpha, int beta, int depth) {
+int MySolution::alpha_beta(Board &board, bool is_white, int alpha, int beta, int depth) {
     if (depth == 0) {
         return MySolution::calc_board(board, is_white);
     }
@@ -186,16 +195,16 @@ int MySolution::alpha_beta(Board &board, bool is_white, MoveOps &ops, int alpha,
     this->get_moves(board, moves, is_white);
     if (moves.size() == 0) {
         // 没有棋走了．输
-        MySolution::print_board(board);
         return -INT32_MAX;
     }
 
     // TODO:按历史表排序全部走法;
     int best_idx = 0;
     int current_point;
+    MoveOps ops;
     for (int i = 0; i < moves.size(); ++i) {
         this->do_move(board, moves[i], ops, is_white);
-        current_point = -alpha_beta(board, !is_white, ops, -beta, -alpha, depth - 1);
+        current_point = -alpha_beta(board, !is_white, -beta, -alpha, depth - 1);
         this->undo_move(board, ops);
         if (current_point >= beta) {
             // TODO:记录到历史表

@@ -22,6 +22,7 @@ constexpr int8_t black_soldier = 3;
 constexpr int8_t black_king = 4;
 constexpr int BOARD_BOUND_SIZE = 8;
 constexpr int BOARD_LINE_SIZE = BOARD_BOUND_SIZE * 2;
+constexpr int BOARD_LAST_LINE_START = BOARD_LINE_SIZE * 7;
 constexpr int BOARD_SIZE = BOARD_BOUND_SIZE * BOARD_BOUND_SIZE * 2;
 
 // >>> 0x88 & 0

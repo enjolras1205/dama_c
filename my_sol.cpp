@@ -274,7 +274,7 @@ void MySolution::get_moves(Board &board, Moves &moves, bool is_white)
     }
 }
 
-bool MySolution::get_eat_moves(const Board &board, BoardFlag &moved, Moves &moves,
+bool MySolution::get_eat_moves(Board &board, BoardFlag &moved, Moves &moves,
     Move &move, int eat_pos, int direction, bool is_white, bool is_king)
 {
     if (moved[eat_pos]) {
@@ -301,6 +301,8 @@ bool MySolution::get_eat_moves(const Board &board, BoardFlag &moved, Moves &move
 
                 Move new_move = move;
                 new_move.push_back(next_pos);
+                auto chess_backup = board[eat_pos];
+                board[eat_pos] = empty_chess;
                 moved[eat_pos] = true;
                 eaten = true;
                 bool still_eaten = false;
@@ -329,6 +331,7 @@ bool MySolution::get_eat_moves(const Board &board, BoardFlag &moved, Moves &move
                     moves.push_back(new_move);
                 }
                 moved[eat_pos] = false;
+                board[eat_pos] = chess_backup;
                 break;
             }
             default: {
@@ -347,7 +350,7 @@ bool MySolution::get_eat_moves(const Board &board, BoardFlag &moved, Moves &move
     return eaten;
 }
 
-bool MySolution::get_press_moves(const Board & board, Moves & moves, int idx)
+bool MySolution::get_press_moves(Board & board, Moves & moves, int idx)
 {
     bool is_white = true;
     bool is_king = false;

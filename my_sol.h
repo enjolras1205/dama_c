@@ -30,10 +30,10 @@ public:
     // direction: 当前吃子的跳转方向
     // is_white: 是否白棋
     // is_king: 是否王棋
-    bool get_eat_moves(const Board &board, BoardFlag &moved, Moves &moves,
+    bool get_eat_moves(Board &board, BoardFlag &moved, Moves &moves,
         Move &move, int eat_pos, int direction, bool is_white, bool is_king);
     // 获得某个棋子可能的所有移动，返回是否有吃子
-    bool get_press_moves(const Board &board, Moves &moves, int idx);
+    bool get_press_moves(Board &board, Moves &moves, int idx);
 private:
     // 最佳走法
     Move best_move;

@@ -207,7 +207,7 @@ int MySolution::alpha_beta(Board &board, bool is_white, int alpha, int beta, int
     }
 
     // TODO:按历史表排序全部走法;
-    int best_idx = 0;
+    BestIdx best_idx;
     MoveOps ops;
     for (int i = 0; i < moves.size(); ++i) {
         this->do_move(board, moves[i], ops, is_white);
@@ -217,15 +217,22 @@ int MySolution::alpha_beta(Board &board, bool is_white, int alpha, int beta, int
             // TODO:记录到历史表
             return beta;
         }
+        bool is_equal = current_point == alpha;
         if (current_point > alpha) {
             alpha = current_point;
-            best_idx = i;
+            if (depth == this->max_depth) {
+                best_idx = BestIdx{i};
+            }
+        }
+        if (depth == this->max_depth && is_equal) {
+            best_idx.push_back(i);
         }
     }
 
     // TODO:记录最佳走法到历史表
     if (depth == this->max_depth) {
-        this->best_move = moves[best_idx];
+        int random_idx = std::rand() % best_idx.size();
+        this->best_move = moves[best_idx[random_idx]];
     }
 
     return alpha;

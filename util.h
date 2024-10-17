@@ -39,6 +39,7 @@ using MoveDirections = std::vector<int8_t>;
 // [idx, chess] idx > 0 放下，idx < 0 拿走
 using MoveOp = std::array<int, 2>;
 using MoveOps = std::vector<MoveOp>;
+using BestIdx = std::vector<int>;
 
 // 1 白兵
 // 2 白王

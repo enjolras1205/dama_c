@@ -52,10 +52,12 @@ void MySolution::print_board(const json & response)
 
 void MySolution::print_board(const Board & board)
 {
+    // return;
     int idx = 0;
     while (!(idx & 0x88)) {
         int row = BOARD_BOUND_SIZE - idx / BOARD_LINE_SIZE;
-        cout << row << ": ";
+        int line_start = (BOARD_BOUND_SIZE - row) * BOARD_LINE_SIZE;
+        cout << std::setw(4) << line_start << "_" << row << ": ";
         while (!(idx & 0x88)) {
             // 水平移动
             // 0,1,2,3,4,5,6,7 ...
@@ -67,7 +69,7 @@ void MySolution::print_board(const Board & board)
         // 垂直移动
         idx += BOARD_BOUND_SIZE;
     }
-    cout << "   a b c d e f g h" << std::endl;
+    cout << "        a b c d e f g h" << std::endl;
 }
 
 int MySolution::calc_board(const Board & board, bool is_white)
@@ -86,9 +88,6 @@ int MySolution::calc_board(const Board & board, bool is_white)
             switch (chess)
             {
             case white_soldier: {
-                if (idx >= BOARD_LAST_LINE_START) {
-                    is_chess_king = true;
-                }
                 break;
             }
             case white_king: {
@@ -97,10 +96,6 @@ int MySolution::calc_board(const Board & board, bool is_white)
             }
             case black_soldier: {
                 is_chess_white = false;
-                // 到底部变王
-                if (idx <= BOARD_BOUND_SIZE) {
-                    is_chess_king = true;
-                }
                 break;
             }
             case black_king: {
@@ -124,11 +119,17 @@ int MySolution::calc_board(const Board & board, bool is_white)
         }
         idx += BOARD_BOUND_SIZE;
     }
+
     return point;
 }
 
 Move MySolution::get_best_move(Board & board, bool is_white)
 {
+    // for (auto round = 1; round <= this->max_round; ++round) {
+    //     this->max_depth = round * 2;
+    //     MySolution::print_board(board);
+    //     MySolution::print_board(board);
+    // }
     this->alpha_beta(board, is_white, -INT32_MAX, INT32_MAX, this->max_depth);
     return this->best_move;
 }
@@ -158,7 +159,7 @@ void MySolution::do_move(Board & board, const Move & move, MoveOps & ops, bool i
         while (idx < end_idx) {
             // 如果有对方棋子
             int chess = board[idx];
-            if (chess != empty_chess && is_my_chess(is_white, chess)) {
+            if (chess != empty_chess && !is_my_chess(is_white, chess)) {
                 ops.push_back(MoveOp({-idx, board[idx]}));
                 board[idx] = empty_chess;
             }
@@ -168,7 +169,14 @@ void MySolution::do_move(Board & board, const Move & move, MoveOps & ops, bool i
 
     // 把开始的棋子放在结束处
     auto end_idx = move.back();
-    ops.push_back(MoveOp({end_idx, board[end_idx]}));
+    // 判断是否需要变王
+    if (start_chess == white_soldier && end_idx >= BOARD_LAST_LINE_START) {
+        start_chess = white_king;
+    }
+    if (start_chess == black_soldier && end_idx < BOARD_BOUND_SIZE) {
+        start_chess = black_king;
+    }
+    ops.push_back(MoveOp({end_idx, start_chess}));
     board[end_idx] = start_chess;
 }
 
@@ -195,16 +203,15 @@ int MySolution::alpha_beta(Board &board, bool is_white, int alpha, int beta, int
     this->get_moves(board, moves, is_white);
     if (moves.size() == 0) {
         // 没有棋走了．输
-        return -INT32_MAX;
+        return this->max_depth - depth - INT32_MAX;
     }
 
     // TODO:按历史表排序全部走法;
     int best_idx = 0;
-    int current_point;
     MoveOps ops;
     for (int i = 0; i < moves.size(); ++i) {
         this->do_move(board, moves[i], ops, is_white);
-        current_point = -alpha_beta(board, !is_white, -beta, -alpha, depth - 1);
+        int current_point = -alpha_beta(board, !is_white, -beta, -alpha, depth - 1);
         this->undo_move(board, ops);
         if (current_point >= beta) {
             // TODO:记录到历史表

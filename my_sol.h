@@ -39,6 +39,7 @@ private:
     Move best_move;
     // 最大搜索深度
     int max_depth = 6;
+    int max_round = 2;
     // 当前轮次
     int round;
     // 上个reduction,　开始前赋值为cur_reduction

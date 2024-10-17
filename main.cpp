@@ -186,8 +186,8 @@ int main() {
     srand(time(NULL));
     if (LOCAL_BATTLE == "true") {
         // local_battle();
-        // run_test();
-        start_battle();
+        run_test();
+        // start_battle();
     } else {
         start_battle();
     }

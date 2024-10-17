@@ -205,18 +205,35 @@ void test11(MySolution &sol)
     assert (json_move == expect_move);
 }
 
+void test12(MySolution &sol)
+{
+    Board board = {
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
+        1,0,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,1,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+        3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+    };
+    Move move = sol.get_best_move(board, false);
+    json xx = {{"move", move}};
+    std::cout << xx.dump() << std::endl;
+}
+
 void run_test()
 {
     MySolution sol;
-    test1(sol);
-    test2(sol);
-    test3(sol);
-    test4(sol);
-    test5(sol);
-    test6(sol);
-    test7(sol);
-    test8(sol);
-    test9(sol);
-    test10(sol);
-    test11(sol);
+    // test1(sol);
+    // test2(sol);
+    // test3(sol);
+    // test4(sol);
+    // test5(sol);
+    // test6(sol);
+    // test7(sol);
+    // test8(sol);
+    // test9(sol);
+    // test10(sol);
+    test12(sol);
 }

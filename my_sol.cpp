@@ -269,12 +269,9 @@ void MySolution::get_moves(Board &board, Moves &moves, bool is_white)
     }
 }
 
-bool MySolution::get_eat_moves(Board &board, BoardFlag &moved, Moves &moves,
+bool MySolution::get_eat_moves(Board &board, Moves &moves,
     Move &move, int eat_pos, int direction, bool is_white, bool is_king)
 {
-    if (moved[eat_pos]) {
-        return false;
-    }
     int next_pos = eat_pos + direction;
     // 兵吃子是跳到棋子后一格．王可能跳到任意格．
     // 如果跳的方向不变．
@@ -298,7 +295,6 @@ bool MySolution::get_eat_moves(Board &board, BoardFlag &moved, Moves &moves,
                 new_move.push_back(next_pos);
                 auto chess_backup = board[eat_pos];
                 board[eat_pos] = empty_chess;
-                moved[eat_pos] = true;
                 eaten = true;
                 bool still_eaten = false;
                 for (int new_direction : directions)
@@ -311,7 +307,7 @@ bool MySolution::get_eat_moves(Board &board, BoardFlag &moved, Moves &moves,
                     while (!(next_eat_pos & 0x88)) {
                         int next_eat_pos_type = get_board_pos_type(board, next_eat_pos);
                         if ((next_eat_pos_type == pos_black && is_white) || (next_eat_pos_type == pos_white && !is_white)) {
-                            bool this_eaten = this->get_eat_moves(board, moved, moves, 
+                            bool this_eaten = this->get_eat_moves(board, moves, 
                               new_move, next_eat_pos, new_direction, is_white, is_king);
                             still_eaten = still_eaten || this_eaten;
                         }
@@ -325,7 +321,6 @@ bool MySolution::get_eat_moves(Board &board, BoardFlag &moved, Moves &moves,
                     // 吃不动了。记录最长的跳跃路径。
                     moves.push_back(new_move);
                 }
-                moved[eat_pos] = false;
                 board[eat_pos] = chess_backup;
                 break;
             }
@@ -401,19 +396,16 @@ bool MySolution::get_press_moves(Board & board, Moves & moves, int idx)
                 case pos_white: {
                     is_direction_block = true;
                     if (!is_white) {
-                        BoardFlag flags; 
                         Move move = {idx};
-                        is_eaten = this->get_eat_moves(board, flags,
-                            eat_moves, move, next_pos, direction, is_white, is_king) || is_eaten;
+                        is_eaten = this->get_eat_moves(board, eat_moves, move, next_pos, direction, is_white, is_king) || is_eaten;
                     }
                     break;
                 }
                 case pos_black: {
                     is_direction_block = true;
                     if (is_white) {
-                        BoardFlag flags; 
                         Move move = {idx};
-                        is_eaten = this->get_eat_moves(board, flags, eat_moves, move, next_pos, direction, is_white, is_king) || is_eaten;
+                        is_eaten = this->get_eat_moves(board, eat_moves, move, next_pos, direction, is_white, is_king) || is_eaten;
                     }
                     break;
                 }

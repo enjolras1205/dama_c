@@ -13,11 +13,10 @@ void test1(MySolution &sol) {
         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
     };
 
-    BoardFlag flags; 
     Moves moves;
     Moves expect_moves = {{48, 80, 82, 114}, {48, 80, 112}};
     Move move = {48};
-    sol.get_eat_moves(board, flags, moves, move, 64, 16, true, false);
+    sol.get_eat_moves(board, moves, move, 64, 16, true, false);
     assert (moves == expect_moves);
 }
 
@@ -33,11 +32,10 @@ void test2(MySolution &sol) {
         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
     };
 
-    BoardFlag flags; 
     Moves moves;
     Moves expect_moves = {{48, 80, 82, 84, 116}, {48, 80, 82, 114}, {48, 80, 112}};
     Move move = {48};
-    sol.get_eat_moves(board, flags, moves, move, 64, 16, true, false);
+    sol.get_eat_moves(board, moves, move, 64, 16, true, false);
     assert (moves == expect_moves);
 }
 
@@ -53,11 +51,10 @@ void test3(MySolution &sol) {
         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
     };
 
-    BoardFlag flags; 
     Moves moves;
     Moves expect_moves = {{50, 82, 80, 112}, {50, 82, 84, 116}, {50, 82, 114}};
     Move move = {50};
-    sol.get_eat_moves(board, flags, moves, move, 66, 16, true, false);
+    sol.get_eat_moves(board, moves, move, 66, 16, true, false);
     assert (moves == expect_moves);
 }
 

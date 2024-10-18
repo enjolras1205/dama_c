@@ -8,7 +8,7 @@
 #include <iostream>
 
 const int solider_point = 100;
-const int king_point = 250;
+const int king_point = 550;
 
 constexpr int8_t pos_out_of_board = 0;
 constexpr int8_t pos_empty = 1;

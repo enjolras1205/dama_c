@@ -213,10 +213,10 @@ int MySolution::alpha_beta(Board &board, bool is_white, int alpha, int beta, int
         this->do_move(board, moves[i], ops, is_white);
         int current_point = -alpha_beta(board, !is_white, -beta, -alpha, depth - 1);
         this->undo_move(board, ops);
-        if (current_point >= beta) {
-            // TODO:记录到历史表
-            return beta;
-        }
+        // if (current_point >= beta) {
+        //     // TODO:记录到历史表
+        //     return beta;
+        // }
         bool is_equal = current_point == alpha;
         if (current_point > alpha) {
             alpha = current_point;
@@ -233,6 +233,7 @@ int MySolution::alpha_beta(Board &board, bool is_white, int alpha, int beta, int
     if (depth == this->max_depth) {
         int random_idx = std::rand() % best_idx.size();
         this->best_move = moves[best_idx[random_idx]];
+        // this->best_move = moves[best_idx[0]];
     }
 
     return alpha;

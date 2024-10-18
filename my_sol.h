@@ -38,7 +38,8 @@ private:
     // 最佳走法
     Move best_move;
     // 最大搜索深度
-    int max_depth = 4;
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    int max_depth = 8;
     int max_round = 2;
     // 当前轮次
     int round;

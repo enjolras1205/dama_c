@@ -1,6 +1,7 @@
 #include "my_sol.h"
 #include "unit_test.h"
 #include <algorithm>
+#include <random>
 using namespace std;
 
 inline void get_max_eat_moves(const Moves &moves, Moves &max_moves) {
@@ -206,34 +207,27 @@ int MySolution::alpha_beta(Board &board, bool is_white, int alpha, int beta, int
         return this->max_depth - depth - INT32_MAX;
     }
 
-    // TODO:按历史表排序全部走法;
-    BestIdx best_idx;
+    // TODO:按历史表排序全部走法; 先随机
+    std::shuffle(std::begin(moves), std::end(moves), std::default_random_engine(this->seed));
+    int best_idx;
     MoveOps ops;
     for (int i = 0; i < moves.size(); ++i) {
         this->do_move(board, moves[i], ops, is_white);
         int current_point = -alpha_beta(board, !is_white, -beta, -alpha, depth - 1);
         this->undo_move(board, ops);
-        // if (current_point >= beta) {
-        //     // TODO:记录到历史表
-        //     return beta;
-        // }
-        bool is_equal = current_point == alpha;
+        if (current_point >= beta) {
+            // TODO:记录到历史表
+            return beta;
+        }
         if (current_point > alpha) {
             alpha = current_point;
-            if (depth == this->max_depth) {
-                best_idx = BestIdx{i};
-            }
-        }
-        if (depth == this->max_depth && is_equal) {
-            best_idx.push_back(i);
+            best_idx = i;
         }
     }
 
     // TODO:记录最佳走法到历史表
     if (depth == this->max_depth) {
-        int random_idx = std::rand() % best_idx.size();
-        this->best_move = moves[best_idx[random_idx]];
-        // this->best_move = moves[best_idx[0]];
+        this->best_move = moves[best_idx];
     }
 
     return alpha;

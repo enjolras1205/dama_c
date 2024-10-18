@@ -6,6 +6,7 @@
 #include <array>
 #include <bitset>
 #include <iostream>
+#include <chrono>
 
 const int solider_point = 100;
 const int king_point = 550;

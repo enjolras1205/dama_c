@@ -1,3 +1,6 @@
+#ifndef MY_SOL_H
+#define MY_SOL_H
+
 #include <nlohmann/json.hpp>
 #include <vector>
 #include <string>
@@ -6,11 +9,14 @@
 using json = nlohmann::json;
 class MySolution {
 public:
+    MySolution(int version = 1, int max_depth = 8) : version(version), max_depth(max_depth) {};
+
     static void get_board(const json & response, Board & board);
     static void transfer_move(const Move &move, JsonMove &json_move);
     static void print_board(const json & response);
     static void print_board(const Board &board);
     static int calc_board(const Board &board, bool is_white);
+    static int calc_board2(const Board &board, bool is_white);
 
     //　获得最好走法
     Move get_best_move(Board &board, bool is_white);
@@ -35,12 +41,12 @@ public:
     // 获得某个棋子可能的所有移动，返回是否有吃子
     bool get_press_moves(Board &board, Moves &moves, int idx);
 private:
+    int max_depth;
+    int version;
     // 最佳走法
     Move best_move;
     // 最大搜索深度
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    int max_depth = 8;
-    int max_round = 2;
     // 当前轮次
     int round;
     // 上个reduction,　开始前赋值为cur_reduction
@@ -48,3 +54,5 @@ private:
     // 当前reduction
     int cur_reduction;
 };
+
+#endif

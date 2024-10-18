@@ -8,8 +8,12 @@
 #include <iostream>
 #include <chrono>
 
-const int solider_point = 100;
-const int king_point = 550;
+const int king_same_line_point = -20;
+// 鼓励前进
+const int move_forward_point = 1;
+const int side_by_side_point = -100;
+const int solider_point = 1000;
+const int king_point = 3500;
 
 constexpr int8_t pos_out_of_board = 0;
 constexpr int8_t pos_empty = 1;

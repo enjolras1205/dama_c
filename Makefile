@@ -136,6 +136,36 @@ main_debug/fast:
 	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/build
 .PHONY : main_debug/fast
 
+local_battle.o: local_battle.cpp.o
+
+.PHONY : local_battle.o
+
+# target to build an object file
+local_battle.cpp.o:
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/local_battle.cpp.o
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/local_battle.cpp.o
+.PHONY : local_battle.cpp.o
+
+local_battle.i: local_battle.cpp.i
+
+.PHONY : local_battle.i
+
+# target to preprocess a source file
+local_battle.cpp.i:
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/local_battle.cpp.i
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/local_battle.cpp.i
+.PHONY : local_battle.cpp.i
+
+local_battle.s: local_battle.cpp.s
+
+.PHONY : local_battle.s
+
+# target to generate assembly for a file
+local_battle.cpp.s:
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/local_battle.cpp.s
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/local_battle.cpp.s
+.PHONY : local_battle.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -266,6 +296,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... main_release"
 	@echo "... main_debug"
+	@echo "... local_battle.o"
+	@echo "... local_battle.i"
+	@echo "... local_battle.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

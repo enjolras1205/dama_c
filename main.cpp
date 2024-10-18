@@ -6,6 +6,7 @@
 #include "solution.h"
 #include "unit_test.h"
 #include "my_sol.h"
+#include "local_battle.h"
 #include <stdexcept>
 
 
@@ -178,15 +179,11 @@ void start_battle() {
     }
 }
 
-void local_battle() 
-{
-}
-
 int main() {
     if (LOCAL_BATTLE == "true") {
-        // local_battle();
+        local_battle();
         // run_test();
-        start_battle();
+        // start_battle();
     } else {
         start_battle();
     }

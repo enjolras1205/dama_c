@@ -124,6 +124,75 @@ int MySolution::calc_board(const Board & board, bool is_white)
     return point;
 }
 
+int MySolution::calc_board2(const Board & board, bool is_white)
+{
+    int point = 0;
+    int idx = 0;
+    int line = 0;
+    while (!(idx & 0x88)) {
+        while (!(idx & 0x88)) {
+            int forward_point = 0;
+            auto chess = board[idx];
+            if (chess == empty_chess) {
+                idx += 1;
+                continue;
+            }
+            bool is_chess_white = true;
+            bool is_chess_king = false;
+            switch (chess)
+            {
+            case white_soldier: {
+                if (is_white) {
+                    forward_point += max((line - 2) * move_forward_point, 0);
+                }
+                break;
+            }
+            case white_king: {
+                is_chess_king = true;
+                break;
+            }
+            case black_soldier: {
+                is_chess_white = false;
+                if (!is_white) {
+                    forward_point += max((BOARD_BOUND_SIZE - line - 3) * move_forward_point, 0);
+                }
+                break;
+            }
+            case black_king: {
+                is_chess_white = false;
+                is_chess_king = true;
+                break;
+            }
+            default:
+                break;
+            }
+            int change_point = solider_point;
+            if (is_chess_king) {
+                change_point = king_point;
+            }
+            if (board[idx + 1] == empty_chess) {
+                // 检测棋子是否排列成空一格的形状。一般而言都不好。
+                // 隔一个的棋子是否同色
+                bool is_next_to_chess_white = is_white_chess(board[idx + 2]);
+                if (is_chess_white == is_next_to_chess_white) {
+                    change_point += side_by_side_point;
+                }
+            }
+            if (is_white == is_chess_white) {
+                point += change_point;
+            } else {
+                point -= change_point;
+            }
+            point += forward_point;
+            idx += 1;
+        }
+        idx += BOARD_BOUND_SIZE;
+        line += 1;
+    }
+
+    return point;
+}
+
 Move MySolution::get_best_move(Board & board, bool is_white)
 {
     // for (auto round = 1; round <= this->max_round; ++round) {
@@ -197,6 +266,11 @@ void MySolution::undo_move(Board & board, MoveOps & ops)
 int MySolution::alpha_beta(Board &board, bool is_white, int alpha, int beta, int depth) {
     if (depth == 0) {
         return MySolution::calc_board(board, is_white);
+        // if (this->version == 1) {
+        //     return MySolution::calc_board(board, is_white);
+        // } else {
+        //     return MySolution::calc_board2(board, is_white);
+        // }
     }
 
     // 生成全部走法;

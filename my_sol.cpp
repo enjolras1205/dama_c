@@ -1,4 +1,5 @@
 #include "my_sol.h"
+// #include "my_sol_v1.h"
 #include "unit_test.h"
 #include <algorithm>
 #include <random>
@@ -182,6 +183,7 @@ void MySolution::print_board(const Board & board)
 
 int MySolution::calc_board(const Board & board, bool is_white)
 {
+    // return MySolutionV1::calc_board(board, is_white);
     int point = 0;
     int idx = 0;
     while (!(idx & 0x88)) {
@@ -215,16 +217,25 @@ Move MySolution::get_best_move(Board & board, bool is_white, int_fast64_t hash_k
     //     MySolution::print_board(board);
     //     MySolution::print_board(board);
     // }
-    this->alpha_beta(board, hash_key, is_white, -INT32_MAX, INT32_MAX, this->max_depth);
+    // this->alpha_beta(board, is_white, -INT32_MAX, INT32_MAX, this->max_depth);
+    int point = 0;
+    this->alpha_beta2(board, hash_key, point, is_white, -INT32_MAX, INT32_MAX, this->max_depth);
     return this->best_move;
 }
 
 void MySolution::do_move(Board & board, const Move & move, MoveOps & ops, bool is_white)
 {
+    int point = 0;
+    this->do_move2(board, move, ops, point, is_white);
+}
+
+void MySolution::do_move2(Board & board, const Move & move, MoveOps & ops, int &point, bool is_white)
+{
     // 拿走起始的棋子
     ops.clear();
     auto start_idx = move[0];
     auto start_chess = board[start_idx];
+    point -= g_pos_point[start_chess][start_idx];
     ops.push_back(MoveOp({-start_idx, board[start_idx]}));
     board[start_idx] = empty_chess;
     // 拿走吃的棋子
@@ -247,6 +258,8 @@ void MySolution::do_move(Board & board, const Move & move, MoveOps & ops, bool i
             if (chess != empty_chess && !is_my_chess(is_white, chess)) {
                 ops.push_back(MoveOp({-idx, board[idx]}));
                 board[idx] = empty_chess;
+                // 吃子加分
+                point += g_pos_point[chess][idx];
             }
             idx += direction;
         }
@@ -262,25 +275,46 @@ void MySolution::do_move(Board & board, const Move & move, MoveOps & ops, bool i
         start_chess = black_king;
     }
     ops.push_back(MoveOp({end_idx, start_chess}));
+    point += g_pos_point[start_chess][end_idx];
     board[end_idx] = start_chess;
 }
 
 void MySolution::undo_move(Board & board, MoveOps & ops)
 {
+    int point = 0;
+    bool is_white;
+    this->undo_move2(board, ops, point, is_white);
+}
+
+void MySolution::undo_move2(Board & board, MoveOps & ops, int &point, bool is_white)
+{
     for (MoveOps::const_reverse_iterator r_iter = ops.rbegin(); r_iter != ops.rend(); ++r_iter) { 
         auto idx = (*r_iter)[0];
         auto chess = (*r_iter)[1];
         if (idx < 0) {
+            // 放下自己棋子加分
+            if (is_my_chess(is_white, chess)) {
+                point += g_pos_point[chess][-idx];
+            } else {
+                point -= g_pos_point[chess][-idx];
+            }
             board[-idx] = chess;
         } else {
+            // 拿走自己棋子扣分
+            if (is_my_chess(is_white, chess)) {
+                point -= g_pos_point[chess][idx];
+            } else {
+                point += g_pos_point[chess][idx];
+            }
             board[idx] = empty_chess;
         }
     } 
 }
 
-int MySolution::alpha_beta(Board &board, int_fast64_t hash_key, bool is_white, int alpha, int beta, int depth) {
+int MySolution::alpha_beta(Board &board, bool is_white, int alpha, int beta, int depth) noexcept {
     if (depth == 0) {
         return MySolution::calc_board(board, is_white);
+        // return point;
     }
 
     // 生成全部走法;
@@ -296,9 +330,50 @@ int MySolution::alpha_beta(Board &board, int_fast64_t hash_key, bool is_white, i
     int best_idx;
     MoveOps ops;
     for (int i = 0; i < moves.size(); ++i) {
+        // this->do_move2(board, moves[i], ops, point, is_white);
         this->do_move(board, moves[i], ops, is_white);
-        int current_point = -alpha_beta(board, hash_key, !is_white, -beta, -alpha, depth - 1);
+        int current_point = -this->alpha_beta(board, !is_white, -beta, -alpha, depth - 1);
         this->undo_move(board, ops);
+        // this->undo_move2(board, ops, point, is_white);
+        if (current_point >= beta) {
+            // TODO:记录到历史表
+            return beta;
+        }
+        if (current_point > alpha) {
+            alpha = current_point;
+            best_idx = i;
+        }
+    }
+
+    // TODO:记录最佳走法到历史表
+    if (depth == this->max_depth) {
+        this->best_move = moves[best_idx];
+    }
+
+    return alpha;
+}
+
+int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool is_white, int alpha, int beta, int depth) noexcept {
+    if (depth == 0) {
+        return point;
+    }
+
+    // 生成全部走法;
+    Moves moves;
+    this->get_moves(board, moves, is_white);
+    if (moves.size() == 0) {
+        // 没有棋走了．输
+        return this->max_depth - depth - INT32_MAX;
+    }
+
+    // TODO:按历史表排序全部走法; 先随机
+    std::shuffle(std::begin(moves), std::end(moves), std::default_random_engine(this->seed));
+    int best_idx;
+    MoveOps ops;
+    for (int i = 0; i < moves.size(); ++i) {
+        this->do_move2(board, moves[i], ops, point, is_white);
+        int current_point = -this->alpha_beta2(board, hash_key, -point, !is_white, -beta, -alpha, depth - 1);
+        this->undo_move2(board, ops, point, is_white);
         if (current_point >= beta) {
             // TODO:记录到历史表
             return beta;

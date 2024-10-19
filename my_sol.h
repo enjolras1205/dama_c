@@ -25,9 +25,13 @@ public:
     Move get_best_move(Board &board, bool is_white, int_fast64_t hash_key);
     // 走ＸＸ走法
     void do_move(Board &board, const Move &move, MoveOps &ops, bool is_white);
+    void do_move2(Board &board, const Move &move, MoveOps &ops, int &point, bool is_white);
     void undo_move(Board &board, MoveOps &ops);
+    // undo 计算分数，需要知道自己的子
+    void undo_move2(Board &board, MoveOps &ops, int &point, bool is_white);
     // alpha beta func
-    int alpha_beta(Board & board, int_fast64_t hash_key, bool is_white, int alpha, int beta, int depth);
+    int alpha_beta(Board & board, bool is_white, int alpha, int beta, int depth) noexcept;
+    int alpha_beta2(Board & board, int_fast64_t hash_key, int point, bool is_white, int alpha, int beta, int depth) noexcept;
     // 获得棋盘上所有走法
     void get_moves(Board &board, Moves& moves, bool is_white);
     // dfs吃子

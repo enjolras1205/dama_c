@@ -1,6 +1,12 @@
 #include "local_battle.h"
 #include "my_sol.h"
 #include "my_sol_v1.h"
+using namespace std::chrono;
+
+uint64_t timeSinceEpochMillisec() {
+  using namespace std::chrono;
+  return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+}
 
 void get_board_result(const Board &board, int &white_point, int &black_point)
 {
@@ -48,15 +54,18 @@ int judge(int white_point, int black_point)
 
 void local_battle()
 {
-    MySolutionV1 sol{8};
-    MySolution sol2{8};
+    MySolutionV1 sol{4};
+    // 新策略有略微优势, 但耗时增加一倍
+    MySolution sol2{4};
     Move move;
     MoveOps ops;
 
     int white_win_count = 0;
     int black_win_count = 0;
     int draw_count = 0;
-    for (int i = 0; i < 1; ++i) {
+    uint64_t sol1_ms = 0;
+    uint64_t sol2_ms = 0;
+    for (int i = 0; i < 100; ++i) {
       Board board = {
           0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
           1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -69,13 +78,21 @@ void local_battle()
       };
       for (int j = 0; true; ++j) {
         MySolution::print_board(board);
+        auto ms1 = timeSinceEpochMillisec();
         move = sol.get_best_move(board, true);
+        auto ms2 = timeSinceEpochMillisec();
+        sol1_ms += ms2 - ms1;
         sol.do_move(board, move, ops, true);
         MySolution::print_board(board);
         // TODO HASH_KEY
+        auto ms3 = timeSinceEpochMillisec();
         move = sol2.get_best_move(board, false, 0);
+        auto ms4 = timeSinceEpochMillisec();
+        sol2_ms += ms4 - ms3;
         sol.do_move(board, move, ops, false);
         MySolution::print_board(board);
+        std::cout << "sol1_ms:" << sol1_ms << " current_ms:" << (ms2 - ms1) << std::endl;
+        std::cout << "sol2_ms:" << sol2_ms << " current_ms:" << (ms4 - ms3) << std::endl;
         int white_point = 0;
         int black_point = 0;
         get_board_result(board, white_point, black_point);

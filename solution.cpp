@@ -23,8 +23,9 @@ std::vector<std::vector<std::string>> Solution::get_next_move(const json &respon
     JsonMove next_move;
     Board board;
     Moves moves;
-    MySolution::get_board(response, board);
-    Move move = sol.get_best_move(board, white);
+    int_fast64_t val = 0;
+    MySolution::get_board(response, board, val);
+    Move move = sol.get_best_move(board, white, val);
     MySolution::transfer_move(move, next_move);
 
     return next_move;

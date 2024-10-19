@@ -1,104 +1,8 @@
-#include "my_sol.h"
+#include "my_sol_v1.h"
 #include "unit_test.h"
 #include <algorithm>
 #include <random>
 using namespace std;
-
-int_fast64_t g_zobrist[black_king + 1][BOARD_SIZE];
-
-// 268435456
-int16_t g_history[65535] = {0};
-
-// 兵位置价值
-int16_t g_pos_point[black_king + 1][BOARD_SIZE] = {
-    // 空
-    {
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-    },
-    // 白兵
-    {
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-        1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
-        2,2,2,2,2,2,2,2,-1,-1,-1,-1,-1,-1,-1,-1,
-        3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
-        6,6,6,6,6,6,6,6,-1,-1,-1,-1,-1,-1,-1,-1,
-        6,6,6,6,6,6,6,6,-1,-1,-1,-1,-1,-1,-1,-1,
-    },
-    // 白王
-    {
-        9,3,3,3,3,3,3,9,-1,-1,-1,-1,-1,-1,-1,-1,
-        3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
-        3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
-        3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
-        3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
-        3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
-        3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
-        9,3,3,3,3,3,3,9,-1,-1,-1,-1,-1,-1,-1,-1,
-    },
-    // 黑兵
-    {
-        6,6,6,6,6,6,6,6,-1,-1,-1,-1,-1,-1,-1,-1,
-        6,6,6,6,6,6,6,6,-1,-1,-1,-1,-1,-1,-1,-1,
-        3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
-        2,2,2,2,2,2,2,2,-1,-1,-1,-1,-1,-1,-1,-1,
-        1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-    },
-    // 黑王
-    {
-        9,3,3,3,3,3,3,9,-1,-1,-1,-1,-1,-1,-1,-1,
-        3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
-        3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
-        3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
-        3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
-        3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
-        3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
-        9,3,3,3,3,3,3,9,-1,-1,-1,-1,-1,-1,-1,-1,
-    },
-};
-
-void init_pos_point() {
-  for (int j = 0; j < BOARD_SIZE; ++j) {
-    g_pos_point[white_soldier][j] += solider_point;
-  }
-  for (int j = 0; j < BOARD_SIZE; ++j) {
-    g_pos_point[white_king][j] += king_point;
-  }
-  for (int j = 0; j < BOARD_SIZE; ++j) {
-    g_pos_point[black_soldier][j] += solider_point;
-  }
-  for (int j = 0; j < BOARD_SIZE; ++j) {
-    g_pos_point[black_king][j] += king_point;
-  }
-}
-
-void init_2() {
-    init_zobrist();
-    init_pos_point();
-}
-
-void init_zobrist() {
-  std::mt19937_64 gen(8036732692983876157);
-  std::uniform_int_distribution<uint64_t> dis;
-  for (int i = 1; i <= black_king; ++i) {
-    for (int j = 0; j < BOARD_SIZE; ++j) {
-      auto v = dis(gen);
-      g_zobrist[i][j] = v;
-    }
-  }
-}
-
 
 inline void get_max_eat_moves(const Moves &moves, Moves &max_moves) {
     size_t max_size = 0;
@@ -112,16 +16,10 @@ inline void get_max_eat_moves(const Moves &moves, Moves &max_moves) {
     }
 }
 
-void MySolution::get_board(const json &response, Board &board)
-{
-    int_fast64_t val = 0;
-    MySolution::get_board(response, board, val);
-}
 // 将服务器返回转成 0x88 棋盘
 // [{"value": 0, "index": ["a", "8"]}, ...]
-void MySolution::get_board(const json &response, Board &board, int_fast64_t &hash_key)
+void MySolutionV1::get_board(const json &response, Board &board)
 {
-    hash_key = 0;
     auto &board_data = response;
     const char a = 'a';
     for (auto &v : board_data) {
@@ -130,15 +28,11 @@ void MySolution::get_board(const json &response, Board &board, int_fast64_t &has
         uint16_t idx = 0;
         idx += (idx_1[0] - a);
         idx += (BOARD_BOUND_SIZE - std::stoi(idx_2)) * 16;
-        ChessType value = v["value"];
-        board[idx] = value;
-        if (v["value"] > 0) {
-            hash_key ^= g_zobrist[value][idx];
-        }
+        board[idx] = v["value"];
     }
 }
 
-void MySolution::transfer_move(const Move & move, JsonMove &json_move)
+void MySolutionV1::transfer_move(const Move & move, JsonMove &json_move)
 {
     json_move.clear();
     const char a = 'a';
@@ -150,15 +44,14 @@ void MySolution::transfer_move(const Move & move, JsonMove &json_move)
     }
 }
 
-void MySolution::print_board(const json & response)
+void MySolutionV1::print_board(const json & response)
 {
     Board board;
-    int_fast64_t val;
-    MySolution::get_board(response, board, val);
-    MySolution::print_board(board);
+    MySolutionV1::get_board(response, board);
+    MySolutionV1::print_board(board);
 }
 
-void MySolution::print_board(const Board & board)
+void MySolutionV1::print_board(const Board & board)
 {
     // return;
     int idx = 0;
@@ -180,7 +73,7 @@ void MySolution::print_board(const Board & board)
     cout << "        a b c d e f g h" << std::endl;
 }
 
-int MySolution::calc_board(const Board & board, bool is_white)
+int MySolutionV1::calc_board(const Board & board, bool is_white)
 {
     int point = 0;
     int idx = 0;
@@ -191,9 +84,33 @@ int MySolution::calc_board(const Board & board, bool is_white)
                 idx += 1;
                 continue;
             }
-            bool is_chess_white = is_white_chess(chess);
-            int change_point = g_pos_point[chess][idx];
-
+            bool is_chess_white = true;
+            bool is_chess_king = false;
+            switch (chess)
+            {
+            case white_soldier: {
+                break;
+            }
+            case white_king: {
+                is_chess_king = true;
+                break;
+            }
+            case black_soldier: {
+                is_chess_white = false;
+                break;
+            }
+            case black_king: {
+                is_chess_white = false;
+                is_chess_king = true;
+                break;
+            }
+            default:
+                break;
+            }
+            int change_point = solider_point;
+            if (is_chess_king) {
+                change_point = king_point;
+            }
             if (is_white == is_chess_white) {
                 point += change_point;
             } else {
@@ -208,18 +125,18 @@ int MySolution::calc_board(const Board & board, bool is_white)
 }
 
 
-Move MySolution::get_best_move(Board & board, bool is_white, int_fast64_t hash_key)
+Move MySolutionV1::get_best_move(Board & board, bool is_white)
 {
     // for (auto round = 1; round <= this->max_round; ++round) {
     //     this->max_depth = round * 2;
-    //     MySolution::print_board(board);
-    //     MySolution::print_board(board);
+    //     MySolutionV1::print_board(board);
+    //     MySolutionV1::print_board(board);
     // }
-    this->alpha_beta(board, hash_key, is_white, -INT32_MAX, INT32_MAX, this->max_depth);
+    this->alpha_beta(board, is_white, -INT32_MAX, INT32_MAX, this->max_depth);
     return this->best_move;
 }
 
-void MySolution::do_move(Board & board, const Move & move, MoveOps & ops, bool is_white)
+void MySolutionV1::do_move(Board & board, const Move & move, MoveOps & ops, bool is_white)
 {
     // 拿走起始的棋子
     ops.clear();
@@ -265,7 +182,7 @@ void MySolution::do_move(Board & board, const Move & move, MoveOps & ops, bool i
     board[end_idx] = start_chess;
 }
 
-void MySolution::undo_move(Board & board, MoveOps & ops)
+void MySolutionV1::undo_move(Board & board, MoveOps & ops)
 {
     for (MoveOps::const_reverse_iterator r_iter = ops.rbegin(); r_iter != ops.rend(); ++r_iter) { 
         auto idx = (*r_iter)[0];
@@ -278,9 +195,9 @@ void MySolution::undo_move(Board & board, MoveOps & ops)
     } 
 }
 
-int MySolution::alpha_beta(Board &board, int_fast64_t hash_key, bool is_white, int alpha, int beta, int depth) {
+int MySolutionV1::alpha_beta(Board &board, bool is_white, int alpha, int beta, int depth) {
     if (depth == 0) {
-        return MySolution::calc_board(board, is_white);
+        return MySolutionV1::calc_board(board, is_white);
     }
 
     // 生成全部走法;
@@ -297,7 +214,7 @@ int MySolution::alpha_beta(Board &board, int_fast64_t hash_key, bool is_white, i
     MoveOps ops;
     for (int i = 0; i < moves.size(); ++i) {
         this->do_move(board, moves[i], ops, is_white);
-        int current_point = -alpha_beta(board, hash_key, !is_white, -beta, -alpha, depth - 1);
+        int current_point = -alpha_beta(board, !is_white, -beta, -alpha, depth - 1);
         this->undo_move(board, ops);
         if (current_point >= beta) {
             // TODO:记录到历史表
@@ -317,7 +234,7 @@ int MySolution::alpha_beta(Board &board, int_fast64_t hash_key, bool is_white, i
     return alpha;
 }
 
-void MySolution::get_moves(Board &board, Moves &moves, bool is_white)
+void MySolutionV1::get_moves(Board &board, Moves &moves, bool is_white)
 {
     moves.clear();
     // 找到所有棋子
@@ -353,7 +270,7 @@ void MySolution::get_moves(Board &board, Moves &moves, bool is_white)
     }
 }
 
-bool MySolution::get_eat_moves(Board &board, Moves &moves,
+bool MySolutionV1::get_eat_moves(Board &board, Moves &moves,
     Move &move, int eat_pos, int direction, bool is_white, bool is_king)
 {
     int next_pos = eat_pos + direction;
@@ -424,7 +341,7 @@ bool MySolution::get_eat_moves(Board &board, Moves &moves,
     return eaten;
 }
 
-bool MySolution::get_press_moves(Board & board, Moves & moves, int idx)
+bool MySolutionV1::get_press_moves(Board & board, Moves & moves, int idx)
 {
     bool is_white = true;
     bool is_king = false;

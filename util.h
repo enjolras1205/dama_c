@@ -7,6 +7,7 @@
 #include <bitset>
 #include <iostream>
 #include <chrono>
+#include <random>
 
 const int king_same_line_point = -20;
 // 鼓励前进
@@ -20,6 +21,7 @@ constexpr int8_t pos_empty = 1;
 constexpr int8_t pos_white = 2;
 constexpr int8_t pos_black = 3;
 
+using ChessType = int8_t;
 constexpr int8_t empty_chess = 0;
 constexpr int8_t white_soldier = 1;
 constexpr int8_t white_king = 2;
@@ -29,6 +31,7 @@ constexpr int BOARD_BOUND_SIZE = 8;
 constexpr int BOARD_LINE_SIZE = BOARD_BOUND_SIZE * 2;
 constexpr int BOARD_LAST_LINE_START = BOARD_LINE_SIZE * 7;
 constexpr int BOARD_SIZE = BOARD_BOUND_SIZE * BOARD_BOUND_SIZE * 2;
+
 
 // >>> 0x88 & 0
 // 0

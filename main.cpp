@@ -154,9 +154,6 @@ void start_battle() {
                     json move = {
                         next_move
                     };
-                    Board board;
-                    MySolution::get_board(move_response["board"], board);
-                    // MySolution::print_board(board);
                     log((std::string)"Invalid move, move: "+ move.dump() + ", resp: " + move_response.dump());
                     break;
                 }
@@ -180,6 +177,7 @@ void start_battle() {
 }
 
 int main() {
+    init_2();
     if (LOCAL_BATTLE == "true") {
         local_battle();
         // run_test();

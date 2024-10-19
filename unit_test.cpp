@@ -216,7 +216,7 @@ void test12(MySolution &sol)
             3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
             0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
         };
-        Move move = sol.get_best_move(board, false);
+        Move move = sol.get_best_move(board, false, 0);
         assert (move != wrong_move);
         json xx = {{"move", move}};
         std::cout << i << std::endl;

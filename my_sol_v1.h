@@ -1,5 +1,5 @@
-#ifndef MY_SOL_H
-#define MY_SOL_H
+#ifndef MY_SOL_H_V1
+#define MY_SOL_H_V1
 
 #include <nlohmann/json.hpp>
 #include <vector>
@@ -7,27 +7,23 @@
 #include "util.h"
 
 using json = nlohmann::json;
-
-void init_zobrist();
-void init_2();
-class MySolution {
+class MySolutionV1 {
 public:
-    MySolution(int max_depth = 8) : max_depth(max_depth) {};
+    MySolutionV1(int max_depth = 8) : max_depth(max_depth) {};
 
     static void get_board(const json & response, Board & board);
-    static void get_board(const json & response, Board & board, int_fast64_t &hash_key);
     static void transfer_move(const Move &move, JsonMove &json_move);
     static void print_board(const json & response);
     static void print_board(const Board &board);
     static int calc_board(const Board &board, bool is_white);
 
     //　获得最好走法
-    Move get_best_move(Board &board, bool is_white, int_fast64_t hash_key);
+    Move get_best_move(Board &board, bool is_white);
     // 走ＸＸ走法
     void do_move(Board &board, const Move &move, MoveOps &ops, bool is_white);
     void undo_move(Board &board, MoveOps &ops);
     // alpha beta func
-    int alpha_beta(Board & board, int_fast64_t hash_key, bool is_white, int alpha, int beta, int depth);
+    int alpha_beta(Board & board, bool is_white, int alpha, int beta, int depth);
     // 获得棋盘上所有走法
     void get_moves(Board &board, Moves& moves, bool is_white);
     // dfs吃子

@@ -1,5 +1,6 @@
 #include "local_battle.h"
 #include "my_sol.h"
+#include "my_sol_v1.h"
 
 void get_board_result(const Board &board, int &white_point, int &black_point)
 {
@@ -47,20 +48,20 @@ int judge(int white_point, int black_point)
 
 void local_battle()
 {
-    MySolution sol{1, 4};
-    MySolution sol2{2, 8};
+    MySolutionV1 sol{8};
+    MySolution sol2{8};
     Move move;
     MoveOps ops;
 
     int white_win_count = 0;
     int black_win_count = 0;
     int draw_count = 0;
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 1; ++i) {
       Board board = {
           0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
           1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
-          1,0,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
-          0,1,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+          1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
+          0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
           0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
           3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
           3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -71,7 +72,8 @@ void local_battle()
         move = sol.get_best_move(board, true);
         sol.do_move(board, move, ops, true);
         MySolution::print_board(board);
-        move = sol2.get_best_move(board, false);
+        // TODO HASH_KEY
+        move = sol2.get_best_move(board, false, 0);
         sol.do_move(board, move, ops, false);
         MySolution::print_board(board);
         int white_point = 0;

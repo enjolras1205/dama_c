@@ -226,6 +226,36 @@ my_sol.cpp.s:
 	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/my_sol.cpp.s
 .PHONY : my_sol.cpp.s
 
+my_sol_v1.o: my_sol_v1.cpp.o
+
+.PHONY : my_sol_v1.o
+
+# target to build an object file
+my_sol_v1.cpp.o:
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/my_sol_v1.cpp.o
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/my_sol_v1.cpp.o
+.PHONY : my_sol_v1.cpp.o
+
+my_sol_v1.i: my_sol_v1.cpp.i
+
+.PHONY : my_sol_v1.i
+
+# target to preprocess a source file
+my_sol_v1.cpp.i:
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/my_sol_v1.cpp.i
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/my_sol_v1.cpp.i
+.PHONY : my_sol_v1.cpp.i
+
+my_sol_v1.s: my_sol_v1.cpp.s
+
+.PHONY : my_sol_v1.s
+
+# target to generate assembly for a file
+my_sol_v1.cpp.s:
+	$(MAKE) -f CMakeFiles/main_release.dir/build.make CMakeFiles/main_release.dir/my_sol_v1.cpp.s
+	$(MAKE) -f CMakeFiles/main_debug.dir/build.make CMakeFiles/main_debug.dir/my_sol_v1.cpp.s
+.PHONY : my_sol_v1.cpp.s
+
 solution.o: solution.cpp.o
 
 .PHONY : solution.o
@@ -305,6 +335,9 @@ help:
 	@echo "... my_sol.o"
 	@echo "... my_sol.i"
 	@echo "... my_sol.s"
+	@echo "... my_sol_v1.o"
+	@echo "... my_sol_v1.i"
+	@echo "... my_sol_v1.s"
 	@echo "... solution.o"
 	@echo "... solution.i"
 	@echo "... solution.s"

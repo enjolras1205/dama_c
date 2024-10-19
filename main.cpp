@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <curl/curl.h>
 #include <unistd.h>
+#include "main.h"
 #include "solution.h"
 #include "unit_test.h"
 #include "my_sol.h"
@@ -39,7 +40,7 @@ size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     return size * nmemb;
 }
 
-void log(std::string msg, std::string log_level = "info") {
+void log(std::string msg, std::string log_level) {
     json j = {{"msg", msg}};
     std::cout << "[" << log_level << "]" << "[" << "game_id: " << GAME_ID
         << ", white: " << WHITE << ", ai_name: " << AI_NAME << "] " << j.dump() << std::endl;
@@ -179,8 +180,8 @@ void start_battle() {
 int main() {
     init_2();
     if (LOCAL_BATTLE == "true") {
-        local_battle();
-        // run_test();
+        // local_battle();
+        run_test();
         // start_battle();
     } else {
         start_battle();

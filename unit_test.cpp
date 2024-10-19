@@ -1,5 +1,6 @@
 #include "unit_test.h"
 #include "my_sol.h"
+#include "my_sol_v1.h"
 
 void test1(MySolution &sol) {
     Board board = {
@@ -204,7 +205,7 @@ void test11(MySolution &sol)
 
 void test12(MySolution &sol)
 {
-    Move wrong_move = Move{81, 65};
+    Move wrong_move = Move{67, 51};
     for (auto i = 0; i < 100; ++i) {
         Board board = {
             0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -216,7 +217,7 @@ void test12(MySolution &sol)
             3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
             0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
         };
-        Move move = sol.get_best_move(board, false, 0);
+        Move move = sol.get_best_move(board, false);
         assert (move != wrong_move);
         json xx = {{"move", move}};
         std::cout << i << std::endl;
@@ -224,9 +225,125 @@ void test12(MySolution &sol)
     }
 }
 
+void test13(MySolution &sol)
+{
+    // 8层搜索固定返回这个
+    // 9层搜索返回 {65,64}
+    MySolutionV1 sol_old{8};
+    Move wrong_move = Move{67, 51};
+    for (auto i = 0; i < 100; ++i) {
+        Board board = {
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            1,0,0,1,1,1,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            1,1,1,0,1,1,0,1,-1,-1,-1,-1,-1,-1,-1,-1,
+            // 48
+            1,1,1,0,0,1,0,1,-1,-1,-1,-1,-1,-1,-1,-1,
+            // 64
+            0,3,0,3,3,3,3,1,-1,-1,-1,-1,-1,-1,-1,-1,
+            3,3,3,3,3,3,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,3,3,3,0,0,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        };
+        // Move move = sol.get_best_move(board, false);
+        Move move = sol_old.get_best_move(board, false);
+        assert (move != wrong_move);
+        json xx = {{"move", move}};
+        std::cout << i << std::endl;
+        std::cout << xx.dump() << std::endl;
+    }
+}
+
+void test14(MySolution &sol)
+{
+    Board board = {
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,1,1,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        1,1,1,1,1,1,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,1,0,0,0,3,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        3,0,3,3,3,3,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,3,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        3,0,0,0,3,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+    };
+    int point = MySolution::calc_board(board, false);
+    assert (point > solider_point);
+}
+
+void test15(MySolution &sol)
+{
+    Move wrong_move = Move{48, 32};
+    for (auto i = 0; i < 100; ++i) {
+        Board board = {
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
+            3,0,1,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+            3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        };
+        Move move = sol.get_best_move(board, false);
+        sol.print_status();
+        assert (move != wrong_move);
+        json xx = {{"move", move}};
+        std::cout << i << std::endl;
+        std::cout << xx.dump() << std::endl;
+    }
+}
+
+void test16(MySolution &sol)
+{
+    Move wrong_move = Move{101, 85};
+    for (auto i = 0; i < 100; ++i) {
+        Board board = {
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            1,1,1,1,0,1,1,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,0,0,1,1,1,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+            3,1,1,0,0,1,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            3,0,0,3,3,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,3,3,3,3,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,0,3,0,0,3,3,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        };
+        Move move = sol.get_best_move(board, false);
+        sol.print_status();
+        json xx = {{"move", move}};
+        std::cout << i << std::endl;
+        std::cout << xx.dump() << std::endl;
+        // assert (move != wrong_move);
+    }
+}
+
+void test17(MySolution &sol)
+{
+    Board board = {
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        1,1,1,1,0,1,1,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,1,0,1,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+        3,1,1,0,0,1,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        3,0,0,3,3,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,3,3,3,3,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,3,0,0,3,3,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+    };
+    Move move = sol.get_best_move(board, false);
+    int_fast64_t hash_key = 0;
+    sol.calc_hash_key(board, hash_key);
+    int_fast64_t hash_key_tmp = hash_key;
+    MoveOps ops;
+    int point;
+    sol.do_move2(board, move, ops, hash_key, point, false);
+    sol.undo_move2(board, ops, hash_key, point, false);
+    assert (hash_key == hash_key_tmp);
+    sol.print_status();
+    json xx = {{"move", move}};
+    std::cout << xx.dump() << std::endl;
+}
+
 void run_test()
 {
-    MySolution sol;
+    MySolution sol{6, 30000, 1};
     // test1(sol);
     // test2(sol);
     // test3(sol);
@@ -237,5 +354,10 @@ void run_test()
     // test8(sol);
     // test9(sol);
     // test10(sol);
-    test12(sol);
+    // test12(sol);
+    // test13(sol);
+    // test14(sol);
+    // test15(sol);
+    // test16(sol);
+    test17(sol);
 }

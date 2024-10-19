@@ -1,15 +1,18 @@
 #include "my_sol.h"
-// #include "my_sol_v1.h"
+#include "my_sol_v1.h"
 #include "unit_test.h"
 #include <algorithm>
 #include <random>
 using namespace std;
 
+uint64_t timeSinceEpochMillisec() {
+  using namespace std::chrono;
+  return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+}
+
+bool my_move_sort_func(const MovePoint &a, const MovePoint &b) { return (a.first > b.first); }
+
 int_fast64_t g_zobrist[black_king + 1][BOARD_SIZE];
-
-// 268435456
-int16_t g_history[65535] = {0};
-
 // 兵位置价值
 int16_t g_pos_point[black_king + 1][BOARD_SIZE] = {
     // 空
@@ -27,10 +30,10 @@ int16_t g_pos_point[black_king + 1][BOARD_SIZE] = {
     {
         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
         1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
         2,2,2,2,2,2,2,2,-1,-1,-1,-1,-1,-1,-1,-1,
         3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+        4,4,4,4,4,4,4,4,-1,-1,-1,-1,-1,-1,-1,-1,
         6,6,6,6,6,6,6,6,-1,-1,-1,-1,-1,-1,-1,-1,
         6,6,6,6,6,6,6,6,-1,-1,-1,-1,-1,-1,-1,-1,
     },
@@ -49,10 +52,10 @@ int16_t g_pos_point[black_king + 1][BOARD_SIZE] = {
     {
         6,6,6,6,6,6,6,6,-1,-1,-1,-1,-1,-1,-1,-1,
         6,6,6,6,6,6,6,6,-1,-1,-1,-1,-1,-1,-1,-1,
+        4,4,4,4,4,4,4,4,-1,-1,-1,-1,-1,-1,-1,-1,
         3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
         2,2,2,2,2,2,2,2,-1,-1,-1,-1,-1,-1,-1,-1,
         1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
-        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
     },
@@ -113,16 +116,10 @@ inline void get_max_eat_moves(const Moves &moves, Moves &max_moves) {
     }
 }
 
-void MySolution::get_board(const json &response, Board &board)
-{
-    int_fast64_t val = 0;
-    MySolution::get_board(response, board, val);
-}
 // 将服务器返回转成 0x88 棋盘
 // [{"value": 0, "index": ["a", "8"]}, ...]
-void MySolution::get_board(const json &response, Board &board, int_fast64_t &hash_key)
+void MySolution::get_board(const json &response, Board &board)
 {
-    hash_key = 0;
     auto &board_data = response;
     const char a = 'a';
     for (auto &v : board_data) {
@@ -133,9 +130,24 @@ void MySolution::get_board(const json &response, Board &board, int_fast64_t &has
         idx += (BOARD_BOUND_SIZE - std::stoi(idx_2)) * 16;
         ChessType value = v["value"];
         board[idx] = value;
-        if (v["value"] > 0) {
-            hash_key ^= g_zobrist[value][idx];
+    }
+}
+
+void MySolution::calc_hash_key(const Board &board, int_fast64_t &hash_key)
+{
+    hash_key = 0;
+    int idx = 0;
+    while (!(idx & 0x88)) {
+        while (!(idx & 0x88)) {
+            auto chess = board[idx];
+            if (chess <= empty_chess) {
+                idx += 1;
+                continue;
+            }
+            hash_key ^= g_zobrist[chess][idx];
+            idx += 1;
         }
+        idx += BOARD_BOUND_SIZE;
     }
 }
 
@@ -154,8 +166,7 @@ void MySolution::transfer_move(const Move & move, JsonMove &json_move)
 void MySolution::print_board(const json & response)
 {
     Board board;
-    int_fast64_t val;
-    MySolution::get_board(response, board, val);
+    MySolution::get_board(response, board);
     MySolution::print_board(board);
 }
 
@@ -210,31 +221,57 @@ int MySolution::calc_board(const Board & board, bool is_white)
 }
 
 
-Move MySolution::get_best_move(Board & board, bool is_white, int_fast64_t hash_key)
+Move MySolution::get_best_move(Board & board, bool is_white)
 {
     // for (auto round = 1; round <= this->max_round; ++round) {
     //     this->max_depth = round * 2;
     //     MySolution::print_board(board);
     //     MySolution::print_board(board);
     // }
-    // this->alpha_beta(board, is_white, -INT32_MAX, INT32_MAX, this->max_depth);
-    int point = 0;
-    this->alpha_beta2(board, hash_key, point, is_white, -INT32_MAX, INT32_MAX, this->max_depth);
+    // this->alpha_beta(board, is_white, -POINT_INF, POINT_INF, this->max_depth);
+    int_fast64_t hash_key = 0;
+    MySolution::calc_hash_key(board, hash_key);
+    this->last_reduction = this->cur_reduction;
+    this->round += 1;
+    auto begin_time = timeSinceEpochMillisec();
+    int depth = this->begin_depth;
+    do {
+        this->cur_max_depth = depth;
+        this->point = this->alpha_beta2(board, hash_key, 0, is_white, -POINT_INF, POINT_INF, depth);
+        auto cur_time = timeSinceEpochMillisec();
+        if (cur_time - begin_time > this->max_step_ms) {
+            break;
+        }
+        depth += 1;
+    } while (depth <= this->max_depth);
+
     return this->best_move;
+}
+
+void MySolution::print_status() {
+    std::cout<<"round:"<< this->round <<std::endl;
+    std::cout<<"cur_max_depth:"<< this->cur_max_depth <<std::endl;
+    std::cout<<"point:"<< this->point <<std::endl;
+    std::cout<<"reduction:"<< this->cur_reduction - this->last_reduction <<std::endl;
+    std::cout<<"total_reduction:"<< this->cur_reduction <<std::endl;
+    std::cout<<"total_hash_hit:"<< this->hash_key_return <<std::endl;
 }
 
 void MySolution::do_move(Board & board, const Move & move, MoveOps & ops, bool is_white)
 {
     int point = 0;
-    this->do_move2(board, move, ops, point, is_white);
+    int_fast64_t hash_key = 0;
+    this->do_move2(board, move, ops, hash_key, point, is_white);
 }
 
-void MySolution::do_move2(Board & board, const Move & move, MoveOps & ops, int &point, bool is_white)
+void MySolution::do_move2(Board & board, const Move & move, MoveOps & ops, 
+    int_fast64_t & hash_key, int &point, bool is_white)
 {
     // 拿走起始的棋子
     ops.clear();
     auto start_idx = move[0];
     auto start_chess = board[start_idx];
+    hash_key ^= g_zobrist[start_chess][start_idx];
     point -= g_pos_point[start_chess][start_idx];
     ops.push_back(MoveOp({-start_idx, board[start_idx]}));
     board[start_idx] = empty_chess;
@@ -260,6 +297,7 @@ void MySolution::do_move2(Board & board, const Move & move, MoveOps & ops, int &
                 board[idx] = empty_chess;
                 // 吃子加分
                 point += g_pos_point[chess][idx];
+                hash_key ^= g_zobrist[chess][idx];
             }
             idx += direction;
         }
@@ -276,23 +314,26 @@ void MySolution::do_move2(Board & board, const Move & move, MoveOps & ops, int &
     }
     ops.push_back(MoveOp({end_idx, start_chess}));
     point += g_pos_point[start_chess][end_idx];
+    hash_key ^= g_zobrist[start_chess][end_idx];
     board[end_idx] = start_chess;
 }
 
 void MySolution::undo_move(Board & board, MoveOps & ops)
 {
     int point = 0;
+    int_fast64_t hash_key = 0;
     bool is_white;
-    this->undo_move2(board, ops, point, is_white);
+    this->undo_move2(board, ops, hash_key, point, is_white);
 }
 
-void MySolution::undo_move2(Board & board, MoveOps & ops, int &point, bool is_white)
+void MySolution::undo_move2(Board & board, MoveOps & ops, int_fast64_t &hash_key, int &point, bool is_white)
 {
     for (MoveOps::const_reverse_iterator r_iter = ops.rbegin(); r_iter != ops.rend(); ++r_iter) { 
         auto idx = (*r_iter)[0];
         auto chess = (*r_iter)[1];
         if (idx < 0) {
             // 放下自己棋子加分
+            hash_key ^= g_zobrist[chess][-idx];
             if (is_my_chess(is_white, chess)) {
                 point += g_pos_point[chess][-idx];
             } else {
@@ -301,6 +342,7 @@ void MySolution::undo_move2(Board & board, MoveOps & ops, int &point, bool is_wh
             board[-idx] = chess;
         } else {
             // 拿走自己棋子扣分
+            hash_key ^= g_zobrist[chess][idx];
             if (is_my_chess(is_white, chess)) {
                 point -= g_pos_point[chess][idx];
             } else {
@@ -311,50 +353,55 @@ void MySolution::undo_move2(Board & board, MoveOps & ops, int &point, bool is_wh
     } 
 }
 
-int MySolution::alpha_beta(Board &board, bool is_white, int alpha, int beta, int depth) noexcept {
-    if (depth == 0) {
-        return MySolution::calc_board(board, is_white);
-        // return point;
+void MySolution::record_history(int_fast64_t hash_key, int depth, int val, int hash_flags)
+{
+    auto idx = hash_key & history_mask;
+    History &his = this->all_history[idx];
+    if (his.depth > depth && this->round == his.round) {
+        // 本轮已经记录更深的历史
+        return;
     }
-
-    // 生成全部走法;
-    Moves moves;
-    this->get_moves(board, moves, is_white);
-    if (moves.size() == 0) {
-        // 没有棋走了．输
-        return this->max_depth - depth - INT32_MAX;
-    }
-
-    // TODO:按历史表排序全部走法; 先随机
-    std::shuffle(std::begin(moves), std::end(moves), std::default_random_engine(this->seed));
-    int best_idx;
-    MoveOps ops;
-    for (int i = 0; i < moves.size(); ++i) {
-        // this->do_move2(board, moves[i], ops, point, is_white);
-        this->do_move(board, moves[i], ops, is_white);
-        int current_point = -this->alpha_beta(board, !is_white, -beta, -alpha, depth - 1);
-        this->undo_move(board, ops);
-        // this->undo_move2(board, ops, point, is_white);
-        if (current_point >= beta) {
-            // TODO:记录到历史表
-            return beta;
-        }
-        if (current_point > alpha) {
-            alpha = current_point;
-            best_idx = i;
-        }
-    }
-
-    // TODO:记录最佳走法到历史表
-    if (depth == this->max_depth) {
-        this->best_move = moves[best_idx];
-    }
-
-    return alpha;
+    his.round = this->round;
+    his.key = hash_key;
+    his.value = val;
+    his.flags = hash_flags;
+    his.depth = depth;
 }
 
-int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool is_white, int alpha, int beta, int depth) noexcept {
+int MySolution::find_history(int_fast64_t hash_key, int depth, int alpha, int beta) 
+{
+    auto idx = hash_key & history_mask;
+    History &his = this->all_history[idx];
+    if (his.key == hash_key && his.round == this->round) {
+// #ifdef DEBUG
+        this->hash_key_return += 1;
+// #endif
+        if (his.depth >= depth) {
+            if (his.flags == flag_exact) {
+                return his.value;
+            }
+            if ((his.flags == flag_alpha) && (his.value <= alpha)) {
+                return alpha;
+            }
+            if ((his.flags == flag_beta) && (his.value >= beta)) {
+                return beta;
+            }
+        }
+    }
+
+    return val_unknown;
+}
+
+int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool is_white, int alpha, int beta, int depth) 
+{
+    int flag_type = flag_alpha;
+    auto val = this->find_history(hash_key, depth, alpha, beta);
+    if (val != val_unknown) {
+        return val;
+    }
+
     if (depth == 0) {
+        this->record_history(hash_key, depth, point, flag_exact);
         return point;
     }
 
@@ -363,30 +410,53 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool
     this->get_moves(board, moves, is_white);
     if (moves.size() == 0) {
         // 没有棋走了．输
-        return this->max_depth - depth - INT32_MAX;
+        return this->max_depth - depth - POINT_INF;
+    } else if(moves.size() == 1 && depth == this->cur_max_depth) {
+        this->best_move = moves[0];
+        // 这里不记录历史表。第一层就返回了。
+        return 0;
     }
 
-    // TODO:按历史表排序全部走法; 先随机
-    std::shuffle(std::begin(moves), std::end(moves), std::default_random_engine(this->seed));
-    int best_idx;
+    this->cur_reduction += 1;
+
+    MovePoints move_points;
     MoveOps ops;
-    for (int i = 0; i < moves.size(); ++i) {
-        this->do_move2(board, moves[i], ops, point, is_white);
+    for (const auto & v: moves) {
+        this->do_move2(board, v, ops, hash_key, point, is_white);
+        // 获得执行move后的局面分
+        // 急需开局库让搜索更有效，大部分时候都不命中
+        auto move_val = this->find_history(hash_key, -1, alpha, beta);
+        if (move_val == val_unknown) {
+            move_val = 0;
+        }
+        this->undo_move2(board, ops, hash_key, point, is_white);
+        move_points.push_back(MovePoint{move_val, v});
+    }
+
+    std::sort(move_points.begin(), move_points.end(), my_move_sort_func);
+    int best_idx;
+    int_fast64_t best_hash_key = 0;
+    for (int i = 0; i < move_points.size(); ++i) {
+        this->do_move2(board, move_points[i].second, ops, hash_key, point, is_white);
+        int_fast64_t tmp = hash_key;
         int current_point = -this->alpha_beta2(board, hash_key, -point, !is_white, -beta, -alpha, depth - 1);
-        this->undo_move2(board, ops, point, is_white);
+        this->undo_move2(board, ops, hash_key, point, is_white);
         if (current_point >= beta) {
-            // TODO:记录到历史表
+            this->record_history(hash_key, depth, beta, flag_beta);
             return beta;
         }
         if (current_point > alpha) {
             alpha = current_point;
+            flag_type = flag_exact;
+            best_hash_key = tmp;
             best_idx = i;
         }
     }
 
-    // TODO:记录最佳走法到历史表
-    if (depth == this->max_depth) {
-        this->best_move = moves[best_idx];
+    this->record_history(best_hash_key, depth, alpha, flag_type);
+    if (depth == this->cur_max_depth) {
+        this->best_move = move_points[best_idx].second;
+        this->best_point = alpha;
     }
 
     return alpha;

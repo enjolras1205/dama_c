@@ -3,11 +3,6 @@
 #include "my_sol_v1.h"
 using namespace std::chrono;
 
-uint64_t timeSinceEpochMillisec() {
-  using namespace std::chrono;
-  return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-}
-
 void get_board_result(const Board &board, int &white_point, int &black_point)
 {
     int idx = 0;
@@ -54,18 +49,17 @@ int judge(int white_point, int black_point)
 
 void local_battle()
 {
-    MySolutionV1 sol{4};
-    // 新策略有略微优势, 但耗时增加一倍
-    MySolution sol2{4};
-    Move move;
+    MySolutionV1 sol{8};
     MoveOps ops;
 
+    bool v1_use_white = true;
     int white_win_count = 0;
     int black_win_count = 0;
     int draw_count = 0;
     uint64_t sol1_ms = 0;
     uint64_t sol2_ms = 0;
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 10; ++i) {
+      MySolution sol2{9, 3000, 8};
       Board board = {
           0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
           1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -78,37 +72,54 @@ void local_battle()
       };
       for (int j = 0; true; ++j) {
         MySolution::print_board(board);
+        
+        // old
         auto ms1 = timeSinceEpochMillisec();
-        move = sol.get_best_move(board, true);
+        auto move1 = sol.get_best_move(board, v1_use_white);
         auto ms2 = timeSinceEpochMillisec();
         sol1_ms += ms2 - ms1;
-        sol.do_move(board, move, ops, true);
+        sol.do_move(board, move1, ops, v1_use_white);
+        json xx1 = {{"move1", move1}};
+        std::cout << xx1.dump() << std::endl;
+
         MySolution::print_board(board);
-        // TODO HASH_KEY
+
+        // new
         auto ms3 = timeSinceEpochMillisec();
-        move = sol2.get_best_move(board, false, 0);
+        auto move2 = sol2.get_best_move(board, !v1_use_white);
         auto ms4 = timeSinceEpochMillisec();
         sol2_ms += ms4 - ms3;
-        sol.do_move(board, move, ops, false);
+        sol2.do_move(board, move2, ops, !v1_use_white);
+        json xx2 = {{"move2", move2}};
+        std::cout << xx2.dump() << std::endl;
+
         MySolution::print_board(board);
-        std::cout << "sol1_ms:" << sol1_ms << " current_ms:" << (ms2 - ms1) << std::endl;
-        std::cout << "sol2_ms:" << sol2_ms << " current_ms:" << (ms4 - ms3) << std::endl;
+        int board_point_1 = MySolutionV1::calc_board(board, v1_use_white);
+        int board_point_2 = MySolution::calc_board(board, !v1_use_white);
+        std::cout << "sol1_ms:" << sol1_ms << " current_ms:" << (ms2 - ms1) << " board_point:" << board_point_1 << std::endl;
+        std::cout << "sol2_ms:" << sol2_ms << " current_ms:" << (ms4 - ms3) << " board_point:" << board_point_2 << std::endl;
+        sol2.print_status();
         int white_point = 0;
         int black_point = 0;
         get_board_result(board, white_point, black_point);
         int result = judge(white_point, black_point);
         if (result == white_win) {
           white_win_count += 1;
+          std::cout<<"result:white_win_a"<<std::endl;
           break;
         } else if (result == black_win) {
+          std::cout<<"result:black_win_a"<<std::endl;
           black_win_count += 1;
           break;
         } else if (j >= 60) {
           if (black_point < white_point) {
+            std::cout<<"result:white_win_b"<<std::endl;
             white_win_count += 1;
           } else if(black_point > white_point) {
+            std::cout<<"result:black_win_b"<<std::endl;
             black_win_count += 1;
           } else {
+            std::cout<<"result:draw"<<std::endl;
             draw_count += 1;
           }
           break;

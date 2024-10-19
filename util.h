@@ -9,12 +9,10 @@
 #include <chrono>
 #include <random>
 
-const int king_same_line_point = -20;
-// 鼓励前进
-const int move_forward_point = 1;
-const int side_by_side_point = -100;
-const int solider_point = 1000;
-const int king_point = 3500;
+// const int king_same_line_point = -20;
+// const int side_by_side_point = -100;
+const int solider_point = 100;
+const int king_point = 350;
 
 constexpr int8_t pos_out_of_board = 0;
 constexpr int8_t pos_empty = 1;
@@ -65,6 +63,8 @@ using BestIdx = std::vector<int>;
 //   A B C D E F G H
 using Board = std::array<int8_t, BOARD_SIZE>;
 using Moves = std::vector<Move>;
+using MovePoint = std::pair<int, Move>;
+using MovePoints = std::vector<MovePoint>;
 
 using JsonMove = std::vector<std::vector<std::string>>;
 using BoardFlag = std::bitset<BOARD_SIZE>;

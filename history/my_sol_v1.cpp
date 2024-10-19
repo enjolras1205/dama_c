@@ -4,6 +4,9 @@
 #include <random>
 using namespace std;
 
+constexpr int solider_point_v1 = 1000;
+constexpr int king_point_v1 = 3500;
+
 inline void get_max_eat_moves(const Moves &moves, Moves &max_moves) {
     size_t max_size = 0;
     for (auto &v : moves) {
@@ -107,9 +110,9 @@ int MySolutionV1::calc_board(const Board & board, bool is_white)
             default:
                 break;
             }
-            int change_point = solider_point;
+            int change_point = solider_point_v1;
             if (is_chess_king) {
-                change_point = king_point;
+                change_point = king_point_v1;
             }
             if (is_white == is_chess_white) {
                 point += change_point;

@@ -35,7 +35,7 @@ void init_2();
 uint64_t timeSinceEpochMillisec();
 class MySolution {
 public:
-    MySolution(int max_depth = 12, int max_step_ms = 20000, int begin_depth = 8) : max_depth(max_depth), max_step_ms(max_step_ms), begin_depth(begin_depth) {};
+    MySolution(int max_depth = 12, int max_step_ms = 20000, int begin_depth = 6) : max_depth(max_depth), max_step_ms(max_step_ms), begin_depth(begin_depth) {};
 
     static void get_board(const json & response, Board & board);
     static void get_board(const json & response, Board & board, int_fast64_t &hash_key);

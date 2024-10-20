@@ -1,4 +1,5 @@
 #include "my_sol.h"
+#include "main.h"
 #include "my_sol_v1.h"
 #include "unit_test.h"
 #include <algorithm>
@@ -13,6 +14,65 @@ uint64_t timeSinceEpochMillisec() {
 bool my_move_sort_func(const MovePoint &a, const MovePoint &b) { return (a.first > b.first); }
 
 int_fast64_t g_zobrist[black_king + 1][BOARD_SIZE];
+
+// backup
+// int16_t g_pos_point[black_king + 1][BOARD_SIZE] = {
+//     // 空
+//     {
+//         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+//         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+//         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+//         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+//         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+//         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+//         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+//         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+//     },
+//     // 白兵
+//     {
+//         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+//         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+//         1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
+//         2,2,2,2,2,2,2,2,-1,-1,-1,-1,-1,-1,-1,-1,
+//         3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+//         4,4,4,4,4,4,4,4,-1,-1,-1,-1,-1,-1,-1,-1,
+//         6,6,6,6,6,6,6,6,-1,-1,-1,-1,-1,-1,-1,-1,
+//         6,6,6,6,6,6,6,6,-1,-1,-1,-1,-1,-1,-1,-1,
+//     },
+//     // 白王
+//     {
+//         9,3,3,3,3,3,3,9,-1,-1,-1,-1,-1,-1,-1,-1,
+//         3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+//         3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+//         3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+//         3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+//         3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+//         3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+//         9,4,4,4,4,4,4,9,-1,-1,-1,-1,-1,-1,-1,-1,
+//     },
+//     // 黑兵
+//     {
+//         6,6,6,6,6,6,6,6,-1,-1,-1,-1,-1,-1,-1,-1,
+//         6,6,6,6,6,6,6,6,-1,-1,-1,-1,-1,-1,-1,-1,
+//         4,4,4,4,4,4,4,4,-1,-1,-1,-1,-1,-1,-1,-1,
+//         3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+//         2,2,2,2,2,2,2,2,-1,-1,-1,-1,-1,-1,-1,-1,
+//         1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
+//         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+//         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+//     },
+//     // 黑王
+//     {
+//         9,4,4,4,4,4,4,9,-1,-1,-1,-1,-1,-1,-1,-1,
+//         3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+//         3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+//         3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+//         3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+//         3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+//         3,0,0,0,0,0,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+//         9,3,3,3,3,3,3,9,-1,-1,-1,-1,-1,-1,-1,-1,
+//     },
+// };
 // 兵位置价值
 int16_t g_pos_point[black_king + 1][BOARD_SIZE] = {
     // 空
@@ -223,39 +283,49 @@ int MySolution::calc_board(const Board & board, bool is_white)
 
 Move MySolution::get_best_move(Board & board, bool is_white)
 {
-    // for (auto round = 1; round <= this->max_round; ++round) {
-    //     this->max_depth = round * 2;
-    //     MySolution::print_board(board);
-    //     MySolution::print_board(board);
-    // }
-    // this->alpha_beta(board, is_white, -POINT_INF, POINT_INF, this->max_depth);
     int_fast64_t hash_key = 0;
     MySolution::calc_hash_key(board, hash_key);
+#ifdef DEBUG
     this->last_reduction = this->cur_reduction;
+#endif
     this->round += 1;
     auto begin_time = timeSinceEpochMillisec();
     int depth = this->begin_depth;
+    auto end_time = begin_time;
     do {
         this->cur_max_depth = depth;
-        this->point = this->alpha_beta2(board, hash_key, 0, is_white, -POINT_INF, POINT_INF, depth);
-        auto cur_time = timeSinceEpochMillisec();
-        if (cur_time - begin_time > this->max_step_ms) {
+        this->best_point = this->alpha_beta2(board, hash_key, 0, is_white, -POINT_INF, POINT_INF, depth);
+        end_time = timeSinceEpochMillisec();
+        if (end_time - begin_time > this->max_step_ms) {
             break;
         }
         depth += 1;
     } while (depth <= this->max_depth);
 
+    json log_data = {
+        {"version", "hehe_v1_3"},
+        {"move", this->best_move},
+        {"round", this->round},
+        {"depth", this->cur_max_depth},
+        {"best_point", this->best_point},
+        {"max_step_ms", this->max_step_ms},
+        {"time_in_ms", end_time - begin_time}
+    };
+
+    log((std::string)"best_move:"+ log_data.dump());
     return this->best_move;
 }
 
 void MySolution::print_status() {
     std::cout<<"round:"<< this->round <<std::endl;
     std::cout<<"cur_max_depth:"<< this->cur_max_depth <<std::endl;
-    std::cout<<"point:"<< this->point <<std::endl;
+    std::cout<<"best_point:"<< this->best_point<<std::endl;
+#ifdef DEBUG
     std::cout<<"reduction:"<< this->cur_reduction - this->last_reduction <<std::endl;
     std::cout<<"total_reduction:"<< this->cur_reduction <<std::endl;
     std::cout<<"total_hash_hit:"<< this->hash_key_return <<std::endl;
-    std::cout<<"beta_cut"<< this->beta_cut <<std::endl;
+    std::cout<<"beta_cut:"<< this->beta_cut <<std::endl;
+#endif
 }
 
 void MySolution::do_move(Board & board, const Move & move, MoveOps & ops, bool is_white)
@@ -380,20 +450,23 @@ int MySolution::find_history(int_fast64_t hash_key, int depth, int alpha, int be
         if (his.is_white != is_white) {
             his_val = -his_val;
         }
-// #ifdef DEBUG
+#ifdef DEBUG
         this->hash_key_return += 1;
-// #endif
+#endif
         if (his.depth >= depth) {
             if (his.flags == flag_exact) {
                 return his_val;
             }
-            if ((his.flags == flag_alpha) && (his_val <= alpha)) {
-                return alpha;
-            }
+            // if ((his.flags == flag_alpha) && (his_val <= alpha)) {
+            //     return alpha;
+            // }
             if ((his.flags == flag_beta) && (his_val >= beta)) {
                 return beta;
             }
         }
+#ifdef DEBUG
+        this->hash_key_return -= 1;
+#endif
     }
 
     return ret;
@@ -424,33 +497,43 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool
         return 0;
     }
 
+#ifdef DEBUG
     this->cur_reduction += 1;
+#endif
 
-    MovePoints move_points;
-    MoveOps ops;
-    for (const auto & v: moves) {
-        this->do_move2(board, v, ops, hash_key, point, is_white);
-        // 获得执行move后的局面分
-        // 急需开局库让搜索更有效，大部分时候都不命中
-        auto move_val = this->find_history(hash_key, -1, -beta, -alpha, !is_white);
-        if (move_val == val_unknown) {
-            move_val = 0;
-        }
-        this->undo_move2(board, ops, hash_key, point, is_white);
-        move_points.push_back(MovePoint{move_val, v});
+    // 发现排序没什么卵用，可能因为强制吃子的设定，大部分移动的价值都是0.
+    // MovePoints move_points;
+    // for (const auto & v: moves) {
+    //     this->do_move2(board, v, ops, hash_key, point, is_white);
+    //     // 获得执行move后的局面分
+    //     // 急需开局库让搜索更有效，大部分时候都不命中
+    //     auto move_val = this->find_history(hash_key, -1, -beta, -alpha, !is_white);
+    //     if (move_val == val_unknown) {
+    //         move_val = 0;
+    //     }
+    //     this->undo_move2(board, ops, hash_key, point, is_white);
+    //     move_points.push_back(MovePoint{move_val, v});
+    // }
+    // std::sort(move_points.begin(), move_points.end(), my_move_sort_func);
+
+    // 本身就DFS优先选择向前移动。向前吃子冲突概率更高，更容易产生截断。
+    // 最顶层还是随机一下，因为评估一样的局面不一定真的一样。更随机的结果可以减少和棋的概率。
+    if (depth == this->cur_max_depth) {
+        std::shuffle(std::begin(moves), std::end(moves), std::default_random_engine(this->seed));
     }
-
-    std::sort(move_points.begin(), move_points.end(), my_move_sort_func);
     int best_idx;
+    MoveOps ops;
     int_fast64_t best_hash_key = 0;
-    for (int i = 0; i < move_points.size(); ++i) {
-        this->do_move2(board, move_points[i].second, ops, hash_key, point, is_white);
+    for (int i = 0; i < moves.size(); ++i) {
+        this->do_move2(board, moves[i], ops, hash_key, point, is_white);
         int_fast64_t tmp = hash_key;
         int current_point = -this->alpha_beta2(board, hash_key, -point, !is_white, -beta, -alpha, depth - 1);
         this->undo_move2(board, ops, hash_key, point, is_white);
         if (current_point >= beta) {
             this->record_history(hash_key, depth, beta, flag_beta, is_white);
+#ifdef DEBUG
             this->beta_cut += 1;
+#endif
             return beta;
         }
         if (current_point > alpha) {
@@ -463,7 +546,7 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool
 
     this->record_history(best_hash_key, depth, alpha, flag_type, is_white);
     if (depth == this->cur_max_depth) {
-        this->best_move = move_points[best_idx].second;
+        this->best_move = moves[best_idx];
         this->best_point = alpha;
     }
 

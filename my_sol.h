@@ -8,7 +8,8 @@
 
 using json = nlohmann::json;
 
-constexpr uint64_t history_size = 65536;
+constexpr uint64_t history_size = 1024 * 1024 * 16;
+// constexpr uint64_t history_size = 256;
 constexpr uint64_t history_mask = history_size - 1;
 
 const int solider_point = 100;
@@ -30,12 +31,16 @@ struct History {
     bool is_white;
 };
 
+using AllHistory = std::vector<History>;
+
 void init_zobrist();
 void init_2();
 uint64_t timeSinceEpochMillisec();
 class MySolution {
 public:
-    MySolution(int max_depth = 12, int max_step_ms = 10000, int begin_depth = 6) : max_depth(max_depth), max_step_ms(max_step_ms), begin_depth(begin_depth) {};
+    MySolution(int max_depth = 16, int max_step_ms = 10000, int begin_depth = 8) : max_depth(max_depth), max_step_ms(max_step_ms), begin_depth(begin_depth) {
+        this->all_history.resize(history_size, History());
+    };
 
     static void get_board(const json & response, Board & board);
     static void get_board(const json & response, Board & board, int_fast64_t &hash_key);
@@ -86,15 +91,19 @@ private:
     int max_depth;
     // 当前搜索深度
     int cur_max_depth;
+    // 当前轮次最佳得分
+    int best_point;
     // 最佳走法
     Move best_move;
     // 历史表，避免搜索重复局面。
-    History all_history[history_size];
-    int best_point;
-    // 当前轮次得分
-    int point = 0;
+    AllHistory all_history;
     // 当前轮次
     int round = 0;
+    // 随机种子
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+
+#ifdef DEBUG
+    // 下面的字段 release 不修改
     // 上个reduction,　开始前赋值为cur_reduction
     int last_reduction = 0;
     // 当前reduction
@@ -103,6 +112,7 @@ private:
     int hash_key_return = 0;
     // beta截断次数
     int beta_cut = 0;
+#endif
 };
 
 #endif

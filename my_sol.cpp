@@ -255,6 +255,7 @@ void MySolution::print_status() {
     std::cout<<"reduction:"<< this->cur_reduction - this->last_reduction <<std::endl;
     std::cout<<"total_reduction:"<< this->cur_reduction <<std::endl;
     std::cout<<"total_hash_hit:"<< this->hash_key_return <<std::endl;
+    std::cout<<"beta_cut"<< this->beta_cut <<std::endl;
 }
 
 void MySolution::do_move(Board & board, const Move & move, MoveOps & ops, bool is_white)
@@ -273,7 +274,7 @@ void MySolution::do_move2(Board & board, const Move & move, MoveOps & ops,
     auto start_chess = board[start_idx];
     hash_key ^= g_zobrist[start_chess][start_idx];
     point -= g_pos_point[start_chess][start_idx];
-    ops.push_back(MoveOp({-start_idx, board[start_idx]}));
+    ops.push_back(MoveOp({start_idx, -start_chess}));
     board[start_idx] = empty_chess;
     // 拿走吃的棋子
     for (size_t i = 1; i < move.size(); ++i) {
@@ -293,7 +294,7 @@ void MySolution::do_move2(Board & board, const Move & move, MoveOps & ops,
             // 如果有对方棋子
             int chess = board[idx];
             if (chess != empty_chess && !is_my_chess(is_white, chess)) {
-                ops.push_back(MoveOp({-idx, board[idx]}));
+                ops.push_back(MoveOp({idx, -board[idx]}));
                 board[idx] = empty_chess;
                 // 吃子加分
                 point += g_pos_point[chess][idx];
@@ -331,29 +332,29 @@ void MySolution::undo_move2(Board & board, MoveOps & ops, int_fast64_t &hash_key
     for (MoveOps::const_reverse_iterator r_iter = ops.rbegin(); r_iter != ops.rend(); ++r_iter) { 
         auto idx = (*r_iter)[0];
         auto chess = (*r_iter)[1];
-        if (idx < 0) {
-            // 放下自己棋子加分
-            hash_key ^= g_zobrist[chess][-idx];
-            if (is_my_chess(is_white, chess)) {
-                point += g_pos_point[chess][-idx];
-            } else {
-                point -= g_pos_point[chess][-idx];
-            }
-            board[-idx] = chess;
+        bool is_push_back = false;
+        if (chess < 0) {
+           is_push_back = true; 
+           chess = -chess;
+        }
+
+        if (is_my_chess(is_white, chess) == is_push_back) {
+            // 自己棋子放回加分
+            point += g_pos_point[chess][idx];
         } else {
-            // 拿走自己棋子扣分
-            hash_key ^= g_zobrist[chess][idx];
-            if (is_my_chess(is_white, chess)) {
-                point -= g_pos_point[chess][idx];
-            } else {
-                point += g_pos_point[chess][idx];
-            }
+            point -= g_pos_point[chess][idx];
+        }
+
+        hash_key ^= g_zobrist[chess][idx];
+        if (is_push_back) {
+            board[idx] = chess;
+        } else {
             board[idx] = empty_chess;
         }
     } 
 }
 
-void MySolution::record_history(int_fast64_t hash_key, int depth, int val, int hash_flags)
+void MySolution::record_history(int_fast64_t hash_key, int depth, int val, int hash_flags, bool is_white)
 {
     auto idx = hash_key & history_mask;
     History &his = this->all_history[idx];
@@ -366,42 +367,48 @@ void MySolution::record_history(int_fast64_t hash_key, int depth, int val, int h
     his.value = val;
     his.flags = hash_flags;
     his.depth = depth;
+    his.is_white = is_white;
 }
 
-int MySolution::find_history(int_fast64_t hash_key, int depth, int alpha, int beta) 
+int MySolution::find_history(int_fast64_t hash_key, int depth, int alpha, int beta, bool is_white) 
 {
     auto idx = hash_key & history_mask;
+    auto ret = val_unknown;
     History &his = this->all_history[idx];
+    auto his_val = his.value;
     if (his.key == hash_key && his.round == this->round) {
+        if (his.is_white != is_white) {
+            his_val = -his_val;
+        }
 // #ifdef DEBUG
         this->hash_key_return += 1;
 // #endif
         if (his.depth >= depth) {
             if (his.flags == flag_exact) {
-                return his.value;
+                return his_val;
             }
-            if ((his.flags == flag_alpha) && (his.value <= alpha)) {
+            if ((his.flags == flag_alpha) && (his_val <= alpha)) {
                 return alpha;
             }
-            if ((his.flags == flag_beta) && (his.value >= beta)) {
+            if ((his.flags == flag_beta) && (his_val >= beta)) {
                 return beta;
             }
         }
     }
 
-    return val_unknown;
+    return ret;
 }
 
 int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool is_white, int alpha, int beta, int depth) 
 {
     int flag_type = flag_alpha;
-    auto val = this->find_history(hash_key, depth, alpha, beta);
+    auto val = this->find_history(hash_key, depth, alpha, beta, is_white);
     if (val != val_unknown) {
         return val;
     }
 
     if (depth == 0) {
-        this->record_history(hash_key, depth, point, flag_exact);
+        this->record_history(hash_key, depth, point, flag_exact, is_white);
         return point;
     }
 
@@ -425,7 +432,7 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool
         this->do_move2(board, v, ops, hash_key, point, is_white);
         // 获得执行move后的局面分
         // 急需开局库让搜索更有效，大部分时候都不命中
-        auto move_val = this->find_history(hash_key, -1, alpha, beta);
+        auto move_val = this->find_history(hash_key, -1, -beta, -alpha, !is_white);
         if (move_val == val_unknown) {
             move_val = 0;
         }
@@ -442,7 +449,8 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool
         int current_point = -this->alpha_beta2(board, hash_key, -point, !is_white, -beta, -alpha, depth - 1);
         this->undo_move2(board, ops, hash_key, point, is_white);
         if (current_point >= beta) {
-            this->record_history(hash_key, depth, beta, flag_beta);
+            this->record_history(hash_key, depth, beta, flag_beta, is_white);
+            this->beta_cut += 1;
             return beta;
         }
         if (current_point > alpha) {
@@ -453,7 +461,7 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool
         }
     }
 
-    this->record_history(best_hash_key, depth, alpha, flag_type);
+    this->record_history(best_hash_key, depth, alpha, flag_type, is_white);
     if (depth == this->cur_max_depth) {
         this->best_move = move_points[best_idx].second;
         this->best_point = alpha;

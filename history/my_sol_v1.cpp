@@ -4,8 +4,8 @@
 #include <random>
 using namespace std;
 
-constexpr int solider_point_v1 = 1000;
-constexpr int king_point_v1 = 3500;
+constexpr int solider_point_v1 = 100;
+constexpr int king_point_v1 = 350;
 
 inline void get_max_eat_moves(const Moves &moves, Moves &max_moves) {
     size_t max_size = 0;
@@ -145,7 +145,7 @@ void MySolutionV1::do_move(Board & board, const Move & move, MoveOps & ops, bool
     ops.clear();
     auto start_idx = move[0];
     auto start_chess = board[start_idx];
-    ops.push_back(MoveOp({-start_idx, board[start_idx]}));
+    ops.push_back(MoveOp({start_idx, -board[start_idx]}));
     board[start_idx] = empty_chess;
     // 拿走吃的棋子
     for (size_t i = 1; i < move.size(); ++i) {
@@ -165,7 +165,7 @@ void MySolutionV1::do_move(Board & board, const Move & move, MoveOps & ops, bool
             // 如果有对方棋子
             int chess = board[idx];
             if (chess != empty_chess && !is_my_chess(is_white, chess)) {
-                ops.push_back(MoveOp({-idx, board[idx]}));
+                ops.push_back(MoveOp({idx, -board[idx]}));
                 board[idx] = empty_chess;
             }
             idx += direction;
@@ -190,8 +190,8 @@ void MySolutionV1::undo_move(Board & board, MoveOps & ops)
     for (MoveOps::const_reverse_iterator r_iter = ops.rbegin(); r_iter != ops.rend(); ++r_iter) { 
         auto idx = (*r_iter)[0];
         auto chess = (*r_iter)[1];
-        if (idx < 0) {
-            board[-idx] = chess;
+        if (chess < 0) {
+            board[idx] = -chess;
         } else {
             board[idx] = empty_chess;
         }

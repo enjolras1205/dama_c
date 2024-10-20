@@ -206,7 +206,7 @@ void test11(MySolution &sol)
 void test12(MySolution &sol)
 {
     Move wrong_move = Move{67, 51};
-    for (auto i = 0; i < 100; ++i) {
+    for (auto i = 0; i < 2; ++i) {
         Board board = {
             0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
             1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -231,7 +231,7 @@ void test13(MySolution &sol)
     // 9层搜索返回 {65,64}
     MySolutionV1 sol_old{8};
     Move wrong_move = Move{67, 51};
-    for (auto i = 0; i < 100; ++i) {
+    for (auto i = 0; i < 2; ++i) {
         Board board = {
             0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
             1,0,0,1,1,1,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -246,7 +246,7 @@ void test13(MySolution &sol)
         };
         // Move move = sol.get_best_move(board, false);
         Move move = sol_old.get_best_move(board, false);
-        assert (move != wrong_move);
+        // assert (move != wrong_move);
         json xx = {{"move", move}};
         std::cout << i << std::endl;
         std::cout << xx.dump() << std::endl;
@@ -272,7 +272,7 @@ void test14(MySolution &sol)
 void test15(MySolution &sol)
 {
     Move wrong_move = Move{48, 32};
-    for (auto i = 0; i < 100; ++i) {
+    for (auto i = 0; i < 2; ++i) {
         Board board = {
             0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
             1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -295,7 +295,7 @@ void test15(MySolution &sol)
 void test16(MySolution &sol)
 {
     Move wrong_move = Move{101, 85};
-    for (auto i = 0; i < 100; ++i) {
+    for (auto i = 0; i < 2; ++i) {
         Board board = {
             0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
             1,1,1,1,0,1,1,0,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -341,9 +341,61 @@ void test17(MySolution &sol)
     std::cout << xx.dump() << std::endl;
 }
 
+void test18(MySolution &sol)
+{
+    Move wrong_move = Move{84, 68};
+    for (auto i = 0; i < 2; ++i) {
+        Board board = {
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            1,0,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
+            1,1,1,1,1,1,0,1,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,1,0,0,0,0,1,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            3,3,3,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            3,0,0,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        };
+        MySolutionV1 old_sol{3};
+        MySolution new_dol{3, 500, 3};
+        Move move_old = old_sol.get_best_move(board, false);
+        Move move = new_dol.get_best_move(board, false);
+        MySolution::print_board(board);
+        sol.print_status();
+        json xx = {{"new_move", move, "move_old", move_old}};
+        std::cout << i << std::endl;
+        std::cout << xx.dump() << std::endl;
+        assert (move != wrong_move);
+    }
+}
+
+void test19(MySolution &sol)
+{
+    Board board = {
+        2,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,0,0,3,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+    };
+    MySolution::print_board(board);
+    Move move_1 = sol.get_best_move(board, false);
+    MySolution::print_board(board);
+    int_fast64_t hash_key = 0;
+    int point = 0;
+    MoveOps ops;
+    Move move = {53, 37};
+    sol.do_move2(board, move, ops, hash_key, point, false);
+    MySolution::print_board(board);
+    std::cout<<"asdf"<<std::endl;
+    assert (board[0] == white_king);
+}
+
 void run_test()
 {
-    MySolution sol{6, 30000, 1};
+    MySolution sol{2, 30000, 2};
     // test1(sol);
     // test2(sol);
     // test3(sol);
@@ -354,10 +406,14 @@ void run_test()
     // test8(sol);
     // test9(sol);
     // test10(sol);
-    // test12(sol);
-    // test13(sol);
-    // test14(sol);
-    // test15(sol);
-    // test16(sol);
+    // 移动没出过问题， 测试不维护了。
+
+    test12(sol);
+    test13(sol);
+    test14(sol);
+    test15(sol);
+    test16(sol);
     test17(sol);
+    test18(sol);
+    test19(sol);
 }

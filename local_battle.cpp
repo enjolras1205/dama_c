@@ -58,8 +58,12 @@ void local_battle()
     int draw_count = 0;
     uint64_t sol1_ms = 0;
     uint64_t sol2_ms = 0;
+    int battle_level = 1;
+    std::string msg = "sort: v1_8 vs v2_9";
+    std::cout<<"battle_level:"<<battle_level<<std::endl;
+    std::cout<<"msg:"<<msg<<std::endl;
     for (int i = 0; i < 10; ++i) {
-      MySolution sol2{9, 3000, 8};
+      MySolution sol2{12, 5000, 9};
       Board board = {
           0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
           1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,

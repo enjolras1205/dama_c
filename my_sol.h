@@ -8,9 +8,11 @@
 
 using json = nlohmann::json;
 
-constexpr uint64_t history_size = 256;
+constexpr uint64_t history_size = 65536;
 constexpr uint64_t history_mask = history_size - 1;
 
+const int solider_point = 100;
+const int king_point = 350;
 constexpr int val_unknown = INT32_MIN;
 constexpr int POINT_INF = INT16_MAX;
 constexpr int flag_empty = 0;
@@ -18,14 +20,14 @@ constexpr int flag_exact = 1;
 constexpr int flag_alpha = 2;
 constexpr int flag_beta = 3;
 struct History {
-    History() : key(0), depth(0), flags(0), value(0), round(0) {};
+    History() : key(0), depth(0), flags(0), value(0), round(0), is_white(false) {};
 
     int_fast64_t key;
     int depth;
     int flags;
     int value;
     int round;
-    Move best;
+    bool is_white;
 };
 
 void init_zobrist();
@@ -33,7 +35,7 @@ void init_2();
 uint64_t timeSinceEpochMillisec();
 class MySolution {
 public:
-    MySolution(int max_depth = 30, int max_step_ms = 25000, int begin_depth = 8) : max_depth(max_depth), max_step_ms(max_step_ms), begin_depth(begin_depth) {};
+    MySolution(int max_depth = 12, int max_step_ms = 20000, int begin_depth = 8) : max_depth(max_depth), max_step_ms(max_step_ms), begin_depth(begin_depth) {};
 
     static void get_board(const json & response, Board & board);
     static void get_board(const json & response, Board & board, int_fast64_t &hash_key);
@@ -54,8 +56,8 @@ public:
     void undo_move2(Board &board, MoveOps &ops, int_fast64_t &hash_key, int &point, bool is_white);
     // alpha beta func
     int alpha_beta(Board & board, bool is_white, int alpha, int beta, int depth);
-    void record_history(int_fast64_t hash_key, int depth, int val, int hash_type);
-    int find_history(int_fast64_t hash_key, int depth, int alpha, int beta);
+    void record_history(int_fast64_t hash_key, int depth, int val, int hash_type, bool is_white);
+    int find_history(int_fast64_t hash_key, int depth, int alpha, int beta, bool is_white);
     int alpha_beta2(Board & board, int_fast64_t hash_key, int point, bool is_white, int alpha, int beta, int depth);
     // 获得棋盘上所有走法
     void get_moves(Board &board, Moves& moves, bool is_white);
@@ -96,6 +98,8 @@ private:
     int cur_reduction = 0;
     // hash_key 命中次数
     int hash_key_return = 0;
+    // beta截断次数
+    int beta_cut = 0;
 };
 
 #endif

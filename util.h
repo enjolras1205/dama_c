@@ -11,8 +11,6 @@
 
 // const int king_same_line_point = -20;
 // const int side_by_side_point = -100;
-const int solider_point = 100;
-const int king_point = 350;
 
 constexpr int8_t pos_out_of_board = 0;
 constexpr int8_t pos_empty = 1;
@@ -42,7 +40,7 @@ constexpr int BOARD_SIZE = BOARD_BOUND_SIZE * BOARD_BOUND_SIZE * 2;
 using Move = std::vector<int>;
 using MoveDirections = std::vector<int8_t>;
 // 走子时产生的操作，可以是拿走/放下一个棋子
-// [idx, chess] idx > 0 放下，idx < 0 拿走
+// [idx, chess] chess > 0 放下，chess < 0 拿走
 using MoveOp = std::array<int, 2>;
 using MoveOps = std::vector<MoveOp>;
 using BestIdx = std::vector<int>;

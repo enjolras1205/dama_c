@@ -9,14 +9,14 @@
 
 using json = nlohmann::json;
 
-constexpr uint64_t history_size = 1024 * 1024 * 16;
+constexpr uint64_t history_size = 1024 * 1024 * 32;
 // constexpr uint64_t history_size = 256;
 constexpr uint64_t history_mask = history_size - 1;
 
 const int solider_point = 100;
 const int king_point = 350;
-constexpr int val_unknown = INT32_MIN;
-constexpr int POINT_INF = INT16_MAX;
+constexpr int val_unknown = INT16_MAX;
+constexpr int16_t POINT_INF = INT16_MAX - 1;
 constexpr int8_t flag_empty = 0;
 constexpr int8_t flag_exact = 1;
 constexpr int8_t flag_alpha = 2;
@@ -28,7 +28,7 @@ struct History {
     int8_t round;
     int8_t flags;
     int8_t depth;
-    int32_t value;
+    int16_t value;
     int_fast64_t key;
 };
 

@@ -416,6 +416,34 @@ void test20() {
     assert (hash_key1 == hash_key2 && hash_key2 == hash_key3);
 }
 
+void test21()
+{
+    Move wrong_move = Move{83, 99};
+    for (auto i = 0; i < 2; ++i) {
+        Board board = {
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            1,1,1,0,0,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
+            1,1,0,1,1,0,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,0,1,1,1,1,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            3,3,0,0,0,0,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,3,3,3,3,3,3,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,3,3,3,3,3,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        };
+        MySolutionV1 old_sol{8};
+        MySolution new_sol{16, 5000, 8};
+        Move old_move = old_sol.get_best_move(board, false);
+        Move new_move = new_sol.get_best_move(board, false);
+        MySolution::print_board(board);
+        new_sol.print_status();
+        json xx = {{"new_move", new_move, "move_old", old_move}};
+        std::cout << i << std::endl;
+        std::cout << xx.dump() << std::endl;
+        assert (new_move != wrong_move);
+    }
+    std::cout<<"test21"<<std::endl;
+}
+
 void run_test()
 {
     MySolution sol{2, 30000, 2};
@@ -440,4 +468,5 @@ void run_test()
     test18(sol);
     test19(sol);
     test20();
+    test21();
 }

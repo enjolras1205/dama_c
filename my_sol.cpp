@@ -304,7 +304,7 @@ Move MySolution::get_best_move(Board & board, bool is_white)
 
     int board_point = MySolution::calc_board(board, is_white);
     json log_data = {
-        {"version", "hehe_v1_4"},
+        {"version", "hehe_v1_5"},
         {"move", this->best_move},
         {"round", this->round},
         {"depth", this->cur_max_depth},

@@ -64,8 +64,8 @@ public:
     void undo_move2(Board &board, MoveOps &ops, int_fast64_t &hash_key, int &point, bool is_white);
     // alpha beta func
     int alpha_beta(Board & board, bool is_white, int alpha, int beta, int depth);
-    void record_history(int_fast64_t hash_key, int depth, int val, int hash_type, bool is_white);
-    int find_history(int_fast64_t hash_key, int depth, int alpha, int beta, bool is_white);
+    void record_history(int_fast64_t hash_key, int depth, int val, int hash_type, bool is_white) noexcept;
+    int find_history(int_fast64_t hash_key, int depth, int alpha, int beta, bool is_white) noexcept;
     int alpha_beta2(Board & board, int_fast64_t hash_key, int point, bool is_white, int alpha, int beta, int depth);
     // 获得棋盘上所有走法
     void get_moves(Board &board, Moves& moves, bool is_white);

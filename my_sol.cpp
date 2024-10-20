@@ -424,7 +424,7 @@ void MySolution::undo_move2(Board & board, MoveOps & ops, int_fast64_t &hash_key
     } 
 }
 
-void MySolution::record_history(int_fast64_t hash_key, int depth, int val, int hash_flags, bool is_white)
+void MySolution::record_history(int_fast64_t hash_key, int depth, int val, int hash_flags, bool is_white) noexcept
 {
     auto idx = hash_key & history_mask;
     History &his = this->all_history[idx];
@@ -440,7 +440,7 @@ void MySolution::record_history(int_fast64_t hash_key, int depth, int val, int h
     his.is_white = is_white;
 }
 
-int MySolution::find_history(int_fast64_t hash_key, int depth, int alpha, int beta, bool is_white) 
+int MySolution::find_history(int_fast64_t hash_key, int depth, int alpha, int beta, bool is_white) noexcept
 {
     auto idx = hash_key & history_mask;
     auto ret = val_unknown;

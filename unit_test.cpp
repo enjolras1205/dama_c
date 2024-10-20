@@ -332,9 +332,8 @@ void test17(MySolution &sol)
     sol.calc_hash_key(board, hash_key);
     int_fast64_t hash_key_tmp = hash_key;
     MoveOps ops;
-    int point;
-    sol.do_move2(board, move, ops, hash_key, point, false);
-    sol.undo_move2(board, ops, hash_key, point, false);
+    sol.do_move2(board, move, ops, hash_key, false);
+    sol.undo_move2(board, ops, hash_key);
     assert (hash_key == hash_key_tmp);
     sol.print_status();
     json xx = {{"move", move}};
@@ -384,13 +383,37 @@ void test19(MySolution &sol)
     Move move_1 = sol.get_best_move(board, false);
     MySolution::print_board(board);
     int_fast64_t hash_key = 0;
-    int point = 0;
     MoveOps ops;
     Move move = {53, 37};
-    sol.do_move2(board, move, ops, hash_key, point, false);
+    sol.do_move2(board, move, ops, hash_key, false);
     MySolution::print_board(board);
     std::cout<<"asdf"<<std::endl;
     assert (board[0] == white_king);
+}
+
+void test20() {
+    // 测试 hash key 算法的正确性
+    MySolution sol_white{6, 3000, 6};
+    MySolution sol_black{6, 3000, 6};
+    Board board = {
+        0,2,0,2,0,2,0,2,-1,-1,-1,-1,-1,-1,-1,-1,
+        2,0,1,0,1,0,1,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,1,0,1,0,1,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        3,3,3,3,3,3,3,4,-1,-1,-1,-1,-1,-1,-1,-1,
+        3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+        0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+    };
+    int_fast64_t hash_key1 = 0;
+    int_fast64_t hash_key2 = 0;
+    int_fast64_t hash_key3 = 0;
+    MySolution::calc_hash_key(board, hash_key1);
+    Move white_move = sol_white.get_best_move(board, true);
+    MySolution::calc_hash_key(board, hash_key2);
+    Move black_move = sol_black.get_best_move(board, false);
+    MySolution::calc_hash_key(board, hash_key3);
+    assert (hash_key1 == hash_key2 && hash_key2 == hash_key3);
 }
 
 void run_test()
@@ -416,4 +439,5 @@ void run_test()
     test17(sol);
     test18(sol);
     test19(sol);
+    test20();
 }

@@ -252,7 +252,7 @@ void MySolution::print_board(const Board & board)
     cout << "        a b c d e f g h" << std::endl;
 }
 
-int MySolution::calc_board(const Board & board, bool is_white)
+int MySolution::calc_board(const Board & board, bool is_white) noexcept
 {
     // return MySolutionV1::calc_board(board, is_white);
     int point = 0;
@@ -294,7 +294,7 @@ Move MySolution::get_best_move(Board & board, bool is_white)
     auto end_time = begin_time;
     do {
         this->cur_max_depth = depth;
-        this->best_point = this->alpha_beta2(board, hash_key, 0, is_white, -POINT_INF, POINT_INF, depth);
+        this->best_point = this->alpha_beta2(board, hash_key, is_white, -POINT_INF, POINT_INF, depth);
         end_time = timeSinceEpochMillisec();
         if (end_time - begin_time > this->max_step_ms) {
             break;
@@ -340,20 +340,18 @@ void MySolution::print_status() {
 
 void MySolution::do_move(Board & board, const Move & move, MoveOps & ops, bool is_white)
 {
-    int point = 0;
     int_fast64_t hash_key = 0;
-    this->do_move2(board, move, ops, hash_key, point, is_white);
+    this->do_move2(board, move, ops, hash_key, is_white);
 }
 
 void MySolution::do_move2(Board & board, const Move & move, MoveOps & ops, 
-    int_fast64_t & hash_key, int &point, bool is_white)
+    int_fast64_t & hash_key, bool is_white)
 {
     // 拿走起始的棋子
     ops.clear();
     auto start_idx = move[0];
     auto start_chess = board[start_idx];
     hash_key ^= g_zobrist[start_chess][start_idx];
-    point -= g_pos_point[start_chess][start_idx];
     ops.push_back(MoveOp({start_idx, -start_chess}));
     board[start_idx] = empty_chess;
     // 拿走吃的棋子
@@ -376,8 +374,6 @@ void MySolution::do_move2(Board & board, const Move & move, MoveOps & ops,
             if (chess != empty_chess && !is_my_chess(is_white, chess)) {
                 ops.push_back(MoveOp({idx, -board[idx]}));
                 board[idx] = empty_chess;
-                // 吃子加分
-                point += g_pos_point[chess][idx];
                 hash_key ^= g_zobrist[chess][idx];
             }
             idx += direction;
@@ -394,20 +390,17 @@ void MySolution::do_move2(Board & board, const Move & move, MoveOps & ops,
         start_chess = black_king;
     }
     ops.push_back(MoveOp({end_idx, start_chess}));
-    point += g_pos_point[start_chess][end_idx];
     hash_key ^= g_zobrist[start_chess][end_idx];
     board[end_idx] = start_chess;
 }
 
 void MySolution::undo_move(Board & board, MoveOps & ops)
 {
-    int point = 0;
     int_fast64_t hash_key = 0;
-    bool is_white;
-    this->undo_move2(board, ops, hash_key, point, is_white);
+    this->undo_move2(board, ops, hash_key);
 }
 
-void MySolution::undo_move2(Board & board, MoveOps & ops, int_fast64_t &hash_key, int &point, bool is_white)
+void MySolution::undo_move2(Board & board, MoveOps & ops, int_fast64_t &hash_key)
 {
     for (MoveOps::const_reverse_iterator r_iter = ops.rbegin(); r_iter != ops.rend(); ++r_iter) { 
         auto idx = (*r_iter)[0];
@@ -416,13 +409,6 @@ void MySolution::undo_move2(Board & board, MoveOps & ops, int_fast64_t &hash_key
         if (chess < 0) {
            is_push_back = true; 
            chess = -chess;
-        }
-
-        if (is_my_chess(is_white, chess) == is_push_back) {
-            // 自己棋子放回加分
-            point += g_pos_point[chess][idx];
-        } else {
-            point -= g_pos_point[chess][idx];
         }
 
         hash_key ^= g_zobrist[chess][idx];
@@ -482,7 +468,7 @@ int MySolution::find_history(int_fast64_t hash_key, int depth, int alpha, int be
     return ret;
 }
 
-int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool is_white, int alpha, int beta, int depth) 
+int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, bool is_white, int alpha, int beta, int depth) 
 {
     int flag_type = flag_alpha;
     auto val = this->find_history(hash_key, depth, alpha, beta, is_white);
@@ -491,8 +477,9 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool
     }
 
     if (depth == 0) {
-        this->record_history(hash_key, depth, point, flag_exact, is_white);
-        return point;
+        int board_point = MySolution::calc_board(board, is_white);
+        this->record_history(hash_key, depth, board_point, flag_exact, is_white);
+        return board_point;
     }
 
     // 生成全部走法;
@@ -535,7 +522,7 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool
     MoveOps ops;
     int_fast64_t best_hash_key = 0;
     for (int i = 0; i < moves.size(); ++i) {
-        this->do_move2(board, moves[i], ops, hash_key, point, is_white);
+        this->do_move2(board, moves[i], ops, hash_key, is_white);
         int_fast64_t tmp = hash_key;
         // 如果在最大层, 发现重复局面
         // 1.局面出现2次
@@ -549,13 +536,13 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool
                 }
             }
             if (duplicate_count >= 2) {
-                this->undo_move2(board, ops, hash_key, point, is_white);
+                this->undo_move2(board, ops, hash_key);
                 continue;
             }
         }
 
-        int current_point = -this->alpha_beta2(board, hash_key, -point, !is_white, -beta, -alpha, depth - 1);
-        this->undo_move2(board, ops, hash_key, point, is_white);
+        int current_point = -this->alpha_beta2(board, hash_key, !is_white, -beta, -alpha, depth - 1);
+        this->undo_move2(board, ops, hash_key);
         if (current_point >= beta) {
             this->record_history(hash_key, depth, beta, flag_beta, is_white);
 #ifdef DEBUG

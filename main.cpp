@@ -180,7 +180,7 @@ void start_battle() {
 int main() {
     init_2();
     if (LOCAL_BATTLE == "true") {
-        // run_test();
+        run_test();
         local_battle();
         // start_battle();
     } else {

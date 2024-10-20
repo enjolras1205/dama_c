@@ -155,7 +155,7 @@ void init_2() {
 void init_zobrist() {
   std::mt19937_64 gen(8036732692983876157);
   std::uniform_int_distribution<uint64_t> dis;
-  for (int i = 1; i <= black_king; ++i) {
+  for (int i = 0; i <= black_king; ++i) {
     for (int j = 0; j < BOARD_SIZE; ++j) {
       auto v = dis(gen);
       g_zobrist[i][j] = v;
@@ -195,7 +195,7 @@ void MySolution::get_board(const json &response, Board &board)
 
 void MySolution::calc_hash_key(const Board &board, int_fast64_t &hash_key)
 {
-    hash_key = 0;
+    hash_key = g_zobrist[0][0];
     int idx = 0;
     while (!(idx & 0x88)) {
         while (!(idx & 0x88)) {
@@ -302,17 +302,27 @@ Move MySolution::get_best_move(Board & board, bool is_white)
         depth += 1;
     } while (depth <= this->max_depth);
 
+    int board_point = MySolution::calc_board(board, is_white);
     json log_data = {
-        {"version", "hehe_v1_3"},
+        {"version", "hehe_v1_4"},
         {"move", this->best_move},
         {"round", this->round},
         {"depth", this->cur_max_depth},
         {"best_point", this->best_point},
+        {"is_white", is_white},
+        {"board_point", board_point},
         {"max_step_ms", this->max_step_ms},
         {"time_in_ms", end_time - begin_time}
     };
 
-    log((std::string)"best_move:"+ log_data.dump());
+    log((std::string)"stat:\n"+ log_data.dump());
+    // 记录走过的局面
+    this->best_key_window.push_back(this->return_board_key);
+
+    if (this->best_key_window.size() >= 10) {
+        this->best_key_window.pop_front();
+    }
+
     return this->best_move;
 }
 
@@ -521,12 +531,29 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool
     if (depth == this->cur_max_depth) {
         std::shuffle(std::begin(moves), std::end(moves), std::default_random_engine(this->seed));
     }
-    int best_idx;
+    int best_idx = -1;
     MoveOps ops;
     int_fast64_t best_hash_key = 0;
     for (int i = 0; i < moves.size(); ++i) {
         this->do_move2(board, moves[i], ops, hash_key, point, is_white);
         int_fast64_t tmp = hash_key;
+        // 如果在最大层, 发现重复局面
+        // 1.局面出现2次
+        // 2.有其它选择. 第一层一定有alpha，而且这里有多个moves，所以不需要判断了。
+        // 记得回滚！！！
+        if (depth == this->cur_max_depth) {
+            int duplicate_count = 0;
+            for (auto v: this->best_key_window) {
+                if (v == tmp) {
+                    duplicate_count += 1;
+                }
+            }
+            if (duplicate_count >= 2) {
+                this->undo_move2(board, ops, hash_key, point, is_white);
+                continue;
+            }
+        }
+
         int current_point = -this->alpha_beta2(board, hash_key, -point, !is_white, -beta, -alpha, depth - 1);
         this->undo_move2(board, ops, hash_key, point, is_white);
         if (current_point >= beta) {
@@ -548,6 +575,7 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int point, bool
     if (depth == this->cur_max_depth) {
         this->best_move = moves[best_idx];
         this->best_point = alpha;
+        this->return_board_key = best_hash_key;
     }
 
     return alpha;

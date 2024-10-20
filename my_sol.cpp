@@ -436,7 +436,7 @@ void MySolution::record_history(int_fast64_t hash_key, int depth, int val, int h
     his.is_white = is_white;
 }
 
-int MySolution::find_history(int_fast64_t hash_key, int depth, int alpha, int beta, bool is_white) noexcept
+inline int MySolution::find_history(int_fast64_t hash_key, int depth, int alpha, int beta, bool is_white) noexcept
 {
     auto idx = hash_key & history_mask;
     auto ret = val_unknown;
@@ -470,7 +470,6 @@ int MySolution::find_history(int_fast64_t hash_key, int depth, int alpha, int be
 
 int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, bool is_white, int alpha, int beta, int depth) 
 {
-    int flag_type = flag_alpha;
     auto val = this->find_history(hash_key, depth, alpha, beta, is_white);
     if (val != val_unknown) {
         return val;
@@ -518,7 +517,7 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, bool is_white, 
     if (depth == this->cur_max_depth) {
         std::shuffle(std::begin(moves), std::end(moves), std::default_random_engine(this->seed));
     }
-    int best_idx = -1;
+    int best_idx = 0;
     MoveOps ops;
     int_fast64_t best_hash_key = 0;
     for (int i = 0; i < moves.size(); ++i) {
@@ -552,13 +551,12 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, bool is_white, 
         }
         if (current_point > alpha) {
             alpha = current_point;
-            flag_type = flag_exact;
             best_hash_key = tmp;
             best_idx = i;
         }
     }
 
-    this->record_history(best_hash_key, depth, alpha, flag_type, is_white);
+    this->record_history(best_hash_key, depth, alpha, flag_exact, is_white);
     if (depth == this->cur_max_depth) {
         this->best_move = moves[best_idx];
         this->best_point = alpha;

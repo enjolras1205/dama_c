@@ -40,7 +40,7 @@ void init_2();
 uint64_t timeSinceEpochMillisec();
 class MySolution {
 public:
-    MySolution(int max_depth = 16, int max_step_ms = 9000, int begin_depth = 8) : max_depth(max_depth), max_step_ms(max_step_ms), begin_depth(begin_depth) {
+    MySolution(int max_depth = 16, int max_step_ms = 11000, int begin_depth = 8) : max_depth(max_depth), max_step_ms(max_step_ms), begin_depth(begin_depth) {
         this->all_history.resize(history_size, History());
     };
 
@@ -66,7 +66,7 @@ public:
     void undo_move2(Board &board, MoveOps &ops, int_fast64_t &hash_key);
     // alpha beta func
     void record_history(int_fast64_t hash_key, int depth, int val, int hash_type, bool is_white) noexcept;
-    int find_history(int_fast64_t hash_key, int depth, int alpha, int beta, bool is_white) noexcept;
+    inline int find_history(int_fast64_t hash_key, int depth, int alpha, int beta, bool is_white) noexcept;
     int alpha_beta2(Board & board, int_fast64_t hash_key, bool is_white, int alpha, int beta, int depth);
     // 获得棋盘上所有走法
     void get_moves(Board &board, Moves& moves, bool is_white);

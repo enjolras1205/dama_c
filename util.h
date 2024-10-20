@@ -88,7 +88,7 @@ inline int get_board_pos_type(const Board &board, int idx) {
     return pos_out_of_board;
   }
 
-  int chess = board[idx];
+  auto chess = board[idx];
   if (chess == empty_chess) {
     return pos_empty;
   } else if (!is_white_chess(chess)) {

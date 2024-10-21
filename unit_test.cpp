@@ -194,7 +194,7 @@ void test10(MySolution &sol) {
     assert (moves == expect_moves);
 }
 
-void test11(MySolution &sol)
+void test11()
 {
     Move move = {0, 1};
     JsonMove json_move;
@@ -225,7 +225,7 @@ void test12(MySolution &sol)
     }
 }
 
-void test13(MySolution &sol)
+void test13()
 {
     // 8层搜索固定返回这个
     // 9层搜索返回 {65,64}
@@ -253,7 +253,7 @@ void test13(MySolution &sol)
     }
 }
 
-void test14(MySolution &sol)
+void test14()
 {
     Board board = {
         0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -444,6 +444,35 @@ void test21()
     std::cout<<"test21"<<std::endl;
 }
 
+void test22()
+{
+    // [info][game_id: 74dd8c93-224c-41b0-ad89-dfb0ed852e8f, white: true, ai_name: 10] {"msg":"stat:\n{\"best_point\":0,\"board_point\":0,\"is_break\":true,\"is_white\":true,\"max_step_ms\":10,\"move\":[32,48],\"real_depth\":4,\"round\":4,\"time_in_ms\":11,\"try_depth\":6,\"version\":\"hehe_v1_6\"}"}
+    Move wrong_move = Move{32, 48};
+    for (auto i = 0; i < 10; ++i) {
+        Board board = {
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
+            1,1,0,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,0,1,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            3,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+            3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        };
+        MySolutionV1 old_sol{4};
+        MySolution new_sol{20, 8, 2};
+        Move old_move = old_sol.get_best_move(board, true);
+        Move new_move = new_sol.get_best_move(board, true);
+        MySolution::print_board(board);
+        new_sol.print_status();
+        json xx = {{"new_move", new_move, "move_old", old_move}};
+        std::cout << i << std::endl;
+        std::cout << xx.dump() << std::endl;
+        assert (new_move != wrong_move);
+    }
+    std::cout<<"test22"<<std::endl;
+}
+
 void run_test()
 {
     MySolution sol{2, 30000, 2};
@@ -459,14 +488,15 @@ void run_test()
     // test10(sol);
     // 移动没出过问题， 测试不维护了。
 
-    test12(sol);
-    test13(sol);
-    test14(sol);
-    test15(sol);
-    test16(sol);
-    test17(sol);
-    test18(sol);
-    test19(sol);
-    test20();
-    test21();
+    // test12(sol);
+    // test13();
+    // test14();
+    // test15(sol);
+    // test16(sol);
+    // test17(sol);
+    // test18(sol);
+    // test19(sol);
+    // test20();
+    // test21();
+    test22();
 }

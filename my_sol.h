@@ -23,7 +23,7 @@ constexpr int8_t flag_exact = 1;
 constexpr int8_t flag_alpha = 2;
 constexpr int8_t flag_beta = 3;
 struct History {
-    History() : key(0), depth(0), flags(0), value(0), round(0), is_white(false) {};
+    History() : is_white(false), round(0), flags(0), depth(0), value(0), key(0) {};
 
     bool is_white;
     int8_t round;
@@ -89,30 +89,30 @@ public:
     // 获得某个棋子可能的所有移动，返回是否有吃子
     bool get_press_moves(Board &board, Moves &moves, int idx);
 private:
-    // 最大单步搜索时间
-    int max_step_ms;
-    // 当前轮次开始时间
-    uint64_t round_begin_ms = timeSinceEpochMillisec();
-    // 开始搜索深度
-    int begin_depth;
-    // 检测中断层次
-    int break_depth;
     // 是否需要中断
     bool is_need_break;
     // 最大搜索深度
     int max_depth;
+    // 最大单步搜索时间
+    int max_step_ms;
+    // 开始搜索深度
+    int begin_depth;
+    // 检测中断层次
+    int break_depth;
     // 当前搜索深度
     int cur_max_depth;
     // 最大搜索深度
     int real_max_depth;
+    // 当前轮次
+    int round = 0;
+    // 当前轮次开始时间
+    uint64_t round_begin_ms = timeSinceEpochMillisec();
     // 当前轮次最佳得分
     int best_point;
     // 最佳走法
     Move best_move;
     // 历史表，避免搜索重复局面。
     AllHistory all_history;
-    // 当前轮次
-    int round = 0;
     // 随机种子
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     // 我方先进入循环。

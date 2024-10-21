@@ -40,7 +40,7 @@ void init_2();
 uint64_t timeSinceEpochMillisec();
 class MySolution {
 public:
-    MySolution(int max_depth = 16, int max_step_ms = 11000, int begin_depth = 8) : max_depth(max_depth), max_step_ms(max_step_ms), begin_depth(begin_depth) {
+    MySolution(int max_depth = 14, int max_step_ms = 6000, int begin_depth = 8) : max_depth(max_depth), max_step_ms(max_step_ms), begin_depth(begin_depth) {
         this->all_history.resize(history_size, History());
     };
 

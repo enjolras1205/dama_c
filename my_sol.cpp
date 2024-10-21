@@ -289,30 +289,35 @@ Move MySolution::get_best_move(Board & board, bool is_white)
     this->last_reduction = this->cur_reduction;
 #endif
     this->round += 1;
-    auto begin_time = timeSinceEpochMillisec();
+    this->round_begin_ms = timeSinceEpochMillisec();
     int depth = this->begin_depth;
-    auto end_time = begin_time;
+    this->break_depth = -1;
+    this->is_need_break = false;
     do {
         this->cur_max_depth = depth;
-        this->best_point = this->alpha_beta2(board, hash_key, is_white, -POINT_INF, POINT_INF, depth);
-        end_time = timeSinceEpochMillisec();
-        if (end_time - begin_time > this->max_step_ms) {
+        this->alpha_beta2(board, hash_key, is_white, -POINT_INF, POINT_INF, depth);
+        if (this->is_need_break) {
             break;
         }
-        depth += 1;
+        depth += 2;
+        // 至少做一轮 alpha beta 有一个基本的结果。
+        this->break_depth = this->begin_depth;
     } while (depth <= this->max_depth);
 
+    auto end_time = timeSinceEpochMillisec();
     int board_point = MySolution::calc_board(board, is_white);
     json log_data = {
-        {"version", "hehe_v1_5"},
+        {"version", "hehe_v1_6"},
         {"move", this->best_move},
         {"round", this->round},
-        {"depth", this->cur_max_depth},
+        {"try_depth", this->cur_max_depth},
+        {"real_depth", this->real_max_depth},
         {"best_point", this->best_point},
         {"is_white", is_white},
+        {"is_break", this->is_need_break},
         {"board_point", board_point},
         {"max_step_ms", this->max_step_ms},
-        {"time_in_ms", end_time - begin_time}
+        {"time_in_ms", end_time - this->round_begin_ms}
     };
 
     log((std::string)"stat:\n"+ log_data.dump());
@@ -479,6 +484,12 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, bool is_white, 
         int board_point = MySolution::calc_board(board, is_white);
         this->record_history(hash_key, depth, board_point, flag_exact, is_white);
         return board_point;
+    } else if (depth == this->break_depth) {
+        auto end_time = timeSinceEpochMillisec();
+        if ((end_time - this->round_begin_ms) > this->max_step_ms) {
+            this->is_need_break = true;
+            return val;
+        }
     }
 
     // 生成全部走法;
@@ -542,6 +553,9 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, bool is_white, 
 
         int current_point = -this->alpha_beta2(board, hash_key, !is_white, -beta, -alpha, depth - 1);
         this->undo_move2(board, ops, hash_key);
+        if (this->is_need_break) {
+            return current_point;
+        }
         if (current_point >= beta) {
             this->record_history(hash_key, depth, beta, flag_beta, is_white);
 #ifdef DEBUG
@@ -560,6 +574,7 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, bool is_white, 
     if (depth == this->cur_max_depth) {
         this->best_move = moves[best_idx];
         this->best_point = alpha;
+        this->real_max_depth = depth;
         // this->return_board_key = best_hash_key;
     }
 

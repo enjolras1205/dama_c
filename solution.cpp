@@ -4,9 +4,8 @@
 #include "solution.h"
 #include "my_sol.h"
 
-MySolution sol;
 
-JsonMove get_random_move(const json &response, bool white) {
+JsonMove get_random_move(const json &response, bool white, MySolution &sol) {
     JsonMove next_move;
     Board board;
     Moves moves;
@@ -19,7 +18,7 @@ JsonMove get_random_move(const json &response, bool white) {
     return next_move;
 }
 
-std::vector<std::vector<std::string>> Solution::get_next_move(const json &response, bool white) {
+std::vector<std::vector<std::string>> Solution::get_next_move(const json &response, bool white, MySolution &sol) {
     JsonMove next_move;
     Board board;
     Moves moves;

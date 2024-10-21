@@ -6,6 +6,7 @@
 #include <deque>
 #include <string>
 #include "util.h"
+#include "main.h"
 
 using json = nlohmann::json;
 
@@ -15,7 +16,7 @@ constexpr uint64_t history_mask = history_size - 1;
 
 const int solider_point = 100;
 const int king_point = 350;
-constexpr int val_unknown = INT16_MAX;
+constexpr int16_t val_unknown = INT16_MAX;
 constexpr int16_t POINT_INF = INT16_MAX - 1;
 constexpr int8_t flag_empty = 0;
 constexpr int8_t flag_exact = 1;
@@ -40,7 +41,7 @@ void init_2();
 uint64_t timeSinceEpochMillisec();
 class MySolution {
 public:
-    MySolution(int max_depth = 14, int max_step_ms = 6000, int begin_depth = 8) : max_depth(max_depth), max_step_ms(max_step_ms), begin_depth(begin_depth) {
+    MySolution(int max_depth = 14, int max_step_ms = 50000, int begin_depth = 6) : max_depth(max_depth), max_step_ms(max_step_ms), begin_depth(begin_depth) {
         this->all_history.resize(history_size, History());
     };
 
@@ -52,8 +53,12 @@ public:
     static void print_board(const Board &board);
     static int calc_board(const Board &board, bool is_white) noexcept;
 
-    inline void set_max_step_ms(int max_step_ms) {
+    inline void set_data(int max_step_ms, int max_depth, int begin_depth) {
         this->max_step_ms = max_step_ms;
+        this->max_depth = max_depth;
+        this->begin_depth = begin_depth;
+        log(string_format("set sol max_step_ms:%d max_depth:%d begin_depth%d",
+            this->max_step_ms, this->max_depth, this->begin_depth));
     }
     void print_status();
     //　获得最好走法
@@ -86,12 +91,20 @@ public:
 private:
     // 最大单步搜索时间
     int max_step_ms;
+    // 当前轮次开始时间
+    uint64_t round_begin_ms = timeSinceEpochMillisec();
     // 开始搜索深度
     int begin_depth;
+    // 检测中断层次
+    int break_depth;
+    // 是否需要中断
+    bool is_need_break;
     // 最大搜索深度
     int max_depth;
     // 当前搜索深度
     int cur_max_depth;
+    // 最大搜索深度
+    int real_max_depth;
     // 当前轮次最佳得分
     int best_point;
     // 最佳走法

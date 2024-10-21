@@ -1,15 +1,8 @@
-#include <iostream>
-#include <string>
-#include <cstdlib>
-#include <curl/curl.h>
-#include <unistd.h>
 #include "main.h"
 #include "solution.h"
 #include "unit_test.h"
 #include "my_sol.h"
 #include "local_battle.h"
-#include <stdexcept>
-
 
 // Constants for URLs
 // Environment variables
@@ -19,12 +12,14 @@ char *char_GAME_ID = std::getenv("game_id");
 char *char_AI_NAME = std::getenv("ai_name");
 char *char_LOCAL_BATTLE = std::getenv("local_battle");
 char *char_IS_BATTLE_DEV = std::getenv("is_battle_dev");
+char *char_IS_TEST= std::getenv("is_test");
 
 std::string TOKEN(char_TOKEN ? char_TOKEN: "");
 std::string WHITE(char_WHITE ? char_WHITE: "");
 std::string GAME_ID(char_GAME_ID ? char_GAME_ID: "");
 std::string AI_NAME(char_AI_NAME ? char_AI_NAME: "");
 std::string LOCAL_BATTLE(char_LOCAL_BATTLE ? char_LOCAL_BATTLE: "");
+std::string IS_TEST(char_IS_TEST ? char_IS_TEST: "");
 
 const std::string QUERY_URL(char_IS_BATTLE_DEV ? "https://battle1024.ejoy.com/play/query": "http://plat1024-battle-service:4000/play/query");
 const std::string MOVE_URL(char_IS_BATTLE_DEV ? "https://battle1024.ejoy.com/play/move": "http://plat1024-battle-service:4000/play/move");
@@ -47,16 +42,6 @@ void log(std::string msg, std::string log_level) {
 }
 
 
-template<typename ... Args>
-std::string string_format( const std::string& format, Args ... args )
-{
-    int size_s = std::snprintf(nullptr, 0, format.c_str(), args ... ) + 1; // Extra space for '\0'
-    if( size_s <= 0 ){ throw std::runtime_error( "Error during formatting." ); }
-    auto size = static_cast<size_t>( size_s );
-    std::unique_ptr<char[]> buf(new char[ size ]);
-    std::snprintf(buf.get(), size, format.c_str(), args ...);
-    return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
-}
 
 json send_request(std::string url, json request_data) {
     CURL *curl;
@@ -122,6 +107,13 @@ json parse_json(const std::string init_response) {
 
 
 void start_battle() {
+    MySolution sol;
+
+    if (IS_TEST == "1") {
+        sol.set_data(10, 20, 2);
+    } else {
+        sol.set_data(55000, 20, 6);
+    }
     while (true) {
         try {
             log("Sending Query request...");
@@ -149,7 +141,7 @@ void start_battle() {
 
             if (init_response["code"] == 10003) {
                 log("query success");
-                std::vector<std::vector<std::string>> next_move = Solution::get_next_move(init_response["board"], WHITE == "true");
+                std::vector<std::vector<std::string>> next_move = Solution::get_next_move(init_response["board"], WHITE == "true", sol);
                 json move_response = send_moves_request(next_move);
                 if (move_response["code"] == 20000) {
                     json move = {
@@ -180,9 +172,9 @@ void start_battle() {
 int main() {
     init_2();
     if (LOCAL_BATTLE == "true") {
-        run_test();
-        local_battle();
-        // start_battle();
+        // run_test();
+        // local_battle();
+        start_battle();
     } else {
         start_battle();
     }

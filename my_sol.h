@@ -10,7 +10,7 @@
 
 using json = nlohmann::json;
 
-constexpr uint64_t history_size = 1024 * 1024 * 32;
+constexpr uint64_t history_size = 1024 * 1024 * 64;
 // constexpr uint64_t history_size = 256;
 constexpr uint64_t history_mask = history_size - 1;
 

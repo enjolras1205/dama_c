@@ -473,6 +473,23 @@ void test22()
     std::cout<<"test22"<<std::endl;
 }
 
+void test23()
+{
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::random_device rd;
+    std::mt19937 g(rd());
+    auto rng = std::default_random_engine {};
+
+    for (int i = 0; i < 99; ++i) {
+        auto a = std::vector<int>{1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
+        std::shuffle(std::begin(a), std::end(a), rng);
+        for (auto v : a) {
+            std::cout<<v<<" ";
+        }
+        std::cout<<std::endl;
+    }
+}
+
 void run_test()
 {
     MySolution sol{2, 30000, 2};
@@ -498,5 +515,6 @@ void run_test()
     // test19(sol);
     // test20();
     // test21();
-    test22();
+    // test22();
+    test23();
 }

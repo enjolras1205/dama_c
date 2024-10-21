@@ -526,12 +526,12 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, bool is_white, 
     // 本身就DFS优先选择向前移动。向前吃子冲突概率更高，更容易产生截断。
     // 最顶层还是随机一下，因为评估一样的局面不一定真的一样。更随机的结果可以减少和棋的概率。
     if (depth == this->cur_max_depth) {
-        std::shuffle(std::begin(moves), std::end(moves), std::default_random_engine(this->seed));
+        std::shuffle(std::begin(moves), std::end(moves), this->random_engine);
     }
-    int best_idx = 0;
+    size_t best_idx = 0;
     MoveOps ops;
     int_fast64_t best_hash_key = 0;
-    for (int i = 0; i < moves.size(); ++i) {
+    for (size_t i = 0; i < moves.size(); ++i) {
         this->do_move2(board, moves[i], ops, hash_key, is_white);
         int_fast64_t tmp = hash_key;
         // 如果在最大层, 发现重复局面

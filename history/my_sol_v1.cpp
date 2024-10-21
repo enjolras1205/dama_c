@@ -212,10 +212,10 @@ int MySolutionV1::alpha_beta(Board &board, bool is_white, int alpha, int beta, i
     }
 
     // TODO:按历史表排序全部走法; 先随机
-    std::shuffle(std::begin(moves), std::end(moves), std::default_random_engine(this->seed));
-    int best_idx;
+    std::shuffle(std::begin(moves), std::end(moves), std::default_random_engine(this->random_engine));
+    size_t best_idx;
     MoveOps ops;
-    for (int i = 0; i < moves.size(); ++i) {
+    for (size_t i = 0; i < moves.size(); ++i) {
         this->do_move(board, moves[i], ops, is_white);
         int current_point = -alpha_beta(board, !is_white, -beta, -alpha, depth - 1);
         this->undo_move(board, ops);

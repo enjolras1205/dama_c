@@ -63,7 +63,7 @@ void local_battle()
     std::cout<<"battle_level:"<<battle_level<<std::endl;
     std::cout<<"msg:"<<msg<<std::endl;
     for (int i = 0; i < 10; ++i) {
-      MySolution sol2{16, 1000, 4};
+      MySolution sol2{16, 5000, 6};
       Board board = {
           0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
           1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,

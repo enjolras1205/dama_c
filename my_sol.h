@@ -112,8 +112,8 @@ private:
     // C4-D4 白
     // C3-B3
     // D4-C4 白 (重复局面)
-    int_fast64_t return_board_key = 0;
-    BestKeyWindow best_key_window;
+    // int_fast64_t return_board_key = 0;
+    // BestKeyWindow best_key_window;
 #ifdef DEBUG
     // 下面的字段 release 不修改
     // 上个reduction,　开始前赋值为cur_reduction

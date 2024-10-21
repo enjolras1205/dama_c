@@ -317,11 +317,11 @@ Move MySolution::get_best_move(Board & board, bool is_white)
 
     log((std::string)"stat:\n"+ log_data.dump());
     // 记录走过的局面
-    this->best_key_window.push_back(this->return_board_key);
+    // this->best_key_window.push_back(this->return_board_key);
 
-    if (this->best_key_window.size() >= 10) {
-        this->best_key_window.pop_front();
-    }
+    // if (this->best_key_window.size() >= 10) {
+    //     this->best_key_window.pop_front();
+    // }
 
     return this->best_move;
 }
@@ -527,18 +527,18 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, bool is_white, 
         // 1.局面出现2次
         // 2.有其它选择. 第一层一定有alpha，而且这里有多个moves，所以不需要判断了。
         // 记得回滚！！！
-        if (depth == this->cur_max_depth) {
-            int duplicate_count = 0;
-            for (auto v: this->best_key_window) {
-                if (v == tmp) {
-                    duplicate_count += 1;
-                }
-            }
-            if (duplicate_count >= 2) {
-                this->undo_move2(board, ops, hash_key);
-                continue;
-            }
-        }
+        // if (depth == this->cur_max_depth) {
+        //     int duplicate_count = 0;
+        //     for (auto v: this->best_key_window) {
+        //         if (v == tmp) {
+        //             duplicate_count += 1;
+        //         }
+        //     }
+        //     if (duplicate_count >= 2) {
+        //         this->undo_move2(board, ops, hash_key);
+        //         continue;
+        //     }
+        // }
 
         int current_point = -this->alpha_beta2(board, hash_key, !is_white, -beta, -alpha, depth - 1);
         this->undo_move2(board, ops, hash_key);
@@ -560,7 +560,7 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, bool is_white, 
     if (depth == this->cur_max_depth) {
         this->best_move = moves[best_idx];
         this->best_point = alpha;
-        this->return_board_key = best_hash_key;
+        // this->return_board_key = best_hash_key;
     }
 
     return alpha;

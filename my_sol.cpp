@@ -299,7 +299,11 @@ Move MySolution::get_best_move(Board & board, bool is_white)
         if (this->is_need_break) {
             break;
         }
-        depth += 2;
+        if (depth >= 10) {
+            depth += 1;
+        } else {
+            depth += 2;
+        }
         // 至少做一轮 alpha beta 有一个基本的结果。
         this->break_depth = this->begin_depth;
     } while (depth <= this->max_depth);
@@ -307,7 +311,7 @@ Move MySolution::get_best_move(Board & board, bool is_white)
     auto end_time = timeSinceEpochMillisec();
     int board_point = MySolution::calc_board(board, is_white);
     json log_data = {
-        {"version", "hehe_v1_6_4"},
+        {"version", "hehe_v1_6_6"},
         {"move", this->best_move},
         {"round", this->round},
         {"try_depth", this->cur_max_depth},

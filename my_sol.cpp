@@ -307,7 +307,7 @@ Move MySolution::get_best_move(Board & board, bool is_white)
     auto end_time = timeSinceEpochMillisec();
     int board_point = MySolution::calc_board(board, is_white);
     json log_data = {
-        {"version", "hehe_v1_6_3"},
+        {"version", "hehe_v1_6_4"},
         {"move", this->best_move},
         {"round", this->round},
         {"try_depth", this->cur_max_depth},
@@ -441,7 +441,7 @@ void MySolution::record_history(int_fast64_t hash_key, int depth, int val, int h
     his.is_white = is_white;
 }
 
-inline int MySolution::find_history(int_fast64_t hash_key, int depth, int alpha, int beta, bool is_white) noexcept
+inline int MySolution::find_history(int_fast64_t hash_key, int depth, int beta, bool is_white) noexcept
 {
     auto idx = hash_key & history_mask;
     auto ret = val_unknown;
@@ -475,7 +475,7 @@ inline int MySolution::find_history(int_fast64_t hash_key, int depth, int alpha,
 
 int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, bool is_white, int alpha, int beta, int depth) 
 {
-    auto val = this->find_history(hash_key, depth, alpha, beta, is_white);
+    auto val = this->find_history(hash_key, depth, beta, is_white);
     if (val != val_unknown) {
         return val;
     }

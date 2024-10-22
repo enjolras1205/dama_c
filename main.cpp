@@ -112,7 +112,7 @@ void start_battle() {
     if (IS_TEST == "1") {
         sol.set_data(10, 20, 2);
     } else {
-        sol.set_data(55000, 20, 6);
+        sol.set_data(58000, 20, 6);
     }
     while (true) {
         try {

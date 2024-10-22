@@ -475,7 +475,7 @@ void test22()
 
 void test23()
 {
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    // unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::random_device rd;
     std::mt19937 g(rd());
     auto rng = std::default_random_engine {};

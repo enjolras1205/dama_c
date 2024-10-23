@@ -23,7 +23,7 @@ constexpr int8_t flag_exact = 1;
 constexpr int8_t flag_alpha = 2;
 constexpr int8_t flag_beta = 3;
 struct History {
-    History() : is_white(false), round(0), flags(0), depth(0), value(0), key(0) {};
+    History() : is_white(false), round(0), flags(0), depth(0), value(0), key(0), check_sum(0) {};
 
     bool is_white;
     int8_t round;
@@ -31,6 +31,7 @@ struct History {
     int8_t depth;
     int16_t value;
     int_fast64_t key;
+    int_fast64_t check_sum;
 };
 
 using AllHistory = std::vector<History>;
@@ -65,14 +66,14 @@ public:
     Move get_best_move(Board &board, bool is_white);
     // 走ＸＸ走法
     void do_move(Board &board, const Move &move, MoveOps &ops, bool is_white);
-    void do_move2(Board &board, const Move &move, MoveOps &ops, int_fast64_t &hash_key, bool is_white);
+    void do_move2(Board &board, const Move &move, MoveOps &ops, int_fast64_t &hash_key, int_fast64_t &check_sum, bool is_white);
     void undo_move(Board &board, MoveOps &ops);
     // undo 计算分数，需要知道自己的子
-    void undo_move2(Board &board, MoveOps &ops, int_fast64_t &hash_key);
+    void undo_move2(Board &board, MoveOps &ops, int_fast64_t &hash_key, int_fast64_t &check_sum);
     // alpha beta func
-    void record_history(int_fast64_t hash_key, int depth, int val, int hash_type, bool is_white) noexcept;
-    inline int find_history(int_fast64_t hash_key, int depth, int beta, bool is_white) noexcept;
-    int alpha_beta2(Board & board, int_fast64_t hash_key, bool is_white, int alpha, int beta, int depth);
+    void record_history(int_fast64_t hash_key, int_fast64_t check_sum, int depth, int val, int hash_type, bool is_white) noexcept;
+    inline int find_history(int_fast64_t hash_key, int_fast64_t check_sum, int depth, int beta, bool is_white) noexcept;
+    int alpha_beta2(Board & board, int_fast64_t hash_key, int_fast64_t check_sum, bool is_white, int alpha, int beta, int depth);
     // 获得棋盘上所有走法
     void get_moves(Board &board, Moves& moves, bool is_white);
     // dfs吃子

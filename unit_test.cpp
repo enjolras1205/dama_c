@@ -329,11 +329,12 @@ void test17(MySolution &sol)
     };
     Move move = sol.get_best_move(board, false);
     int_fast64_t hash_key = 0;
+    int_fast64_t check_sum = 0;
     sol.calc_hash_key(board, hash_key);
     int_fast64_t hash_key_tmp = hash_key;
     MoveOps ops;
-    sol.do_move2(board, move, ops, hash_key, false);
-    sol.undo_move2(board, ops, hash_key);
+    sol.do_move2(board, move, ops, hash_key, check_sum, false);
+    sol.undo_move2(board, ops, hash_key, check_sum);
     assert (hash_key == hash_key_tmp);
     sol.print_status();
     json xx = {{"move", move}};
@@ -383,9 +384,10 @@ void test19(MySolution &sol)
     Move move_1 = sol.get_best_move(board, false);
     MySolution::print_board(board);
     int_fast64_t hash_key = 0;
+    int_fast64_t check_sum = 0;
     MoveOps ops;
     Move move = {53, 37};
-    sol.do_move2(board, move, ops, hash_key, false);
+    sol.do_move2(board, move, ops, hash_key, check_sum, false);
     MySolution::print_board(board);
     std::cout<<"asdf"<<std::endl;
     assert (board[0] == white_king);
@@ -490,6 +492,35 @@ void test23()
     }
 }
 
+void test24()
+{
+    // [info][game_id: 74dd8c93-224c-41b0-ad89-dfb0ed852e8f, white: true, ai_name: 10] {"msg":"stat:\n{\"best_point\":0,\"board_point\":0,\"is_break\":true,\"is_white\":true,\"max_step_ms\":10,\"move\":[32,48],\"real_depth\":4,\"round\":4,\"time_in_ms\":11,\"try_depth\":6,\"version\":\"hehe_v1_6\"}"}
+    Move wrong_move = Move{36, 52};
+    for (auto i = 0; i < 10; ++i) {
+        Board board = {
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            1,1,1,0,0,1,0,1,-1,-1,-1,-1,-1,-1,-1,-1,
+            1,1,1,1,1,0,0,1,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,0,1,0,0,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,
+            3,0,0,0,0,3,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+            3,0,0,3,3,3,0,3,-1,-1,-1,-1,-1,-1,-1,-1,
+            3,3,3,3,3,3,3,3,-1,-1,-1,-1,-1,-1,-1,-1,
+            0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,
+        };
+        MySolutionV1 old_sol{8};
+        MySolution new_sol{10, 55000, 6};
+        Move old_move = old_sol.get_best_move(board, true);
+        Move new_move = new_sol.get_best_move(board, true);
+        MySolution::print_board(board);
+        new_sol.print_status();
+        json xx = {{"new_move", new_move, "move_old", old_move}};
+        std::cout << i << std::endl;
+        std::cout << xx.dump() << std::endl;
+        assert (new_move != wrong_move);
+    }
+    std::cout<<"test24"<<std::endl;
+}
+
 void run_test()
 {
     MySolution sol{2, 30000, 2};
@@ -505,16 +536,17 @@ void run_test()
     // test10(sol);
     // 移动没出过问题， 测试不维护了。
 
-    // test12(sol);
-    // test13();
-    // test14();
-    // test15(sol);
-    // test16(sol);
-    // test17(sol);
-    // test18(sol);
-    // test19(sol);
-    // test20();
-    // test21();
-    // test22();
+    test12(sol);
+    test13();
+    test14();
+    test15(sol);
+    test16(sol);
+    test17(sol);
+    test18(sol);
+    test19(sol);
+    test20();
+    test21();
+    test22();
     test23();
+    test24();
 }

@@ -13,6 +13,7 @@ char *char_AI_NAME = std::getenv("ai_name");
 char *char_LOCAL_BATTLE = std::getenv("local_battle");
 char *char_IS_BATTLE_DEV = std::getenv("is_battle_dev");
 char *char_IS_TEST= std::getenv("is_test");
+char *char_IS_UNIT= std::getenv("is_unit");
 
 std::string TOKEN(char_TOKEN ? char_TOKEN: "");
 std::string WHITE(char_WHITE ? char_WHITE: "");
@@ -20,6 +21,7 @@ std::string GAME_ID(char_GAME_ID ? char_GAME_ID: "");
 std::string AI_NAME(char_AI_NAME ? char_AI_NAME: "");
 std::string LOCAL_BATTLE(char_LOCAL_BATTLE ? char_LOCAL_BATTLE: "");
 std::string IS_TEST(char_IS_TEST ? char_IS_TEST: "");
+std::string IS_UNIT(char_IS_UNIT ? char_IS_UNIT: "");
 
 const std::string QUERY_URL(char_IS_BATTLE_DEV ? "https://battle1024.ejoy.com/play/query": "http://plat1024-battle-service:4000/play/query");
 const std::string MOVE_URL(char_IS_BATTLE_DEV ? "https://battle1024.ejoy.com/play/move": "http://plat1024-battle-service:4000/play/move");
@@ -171,10 +173,10 @@ void start_battle() {
 
 int main() {
     init_2();
-    if (LOCAL_BATTLE == "true") {
-        // run_test();
+    if (IS_UNIT == "true") {
+        run_test();
+    } else if (LOCAL_BATTLE == "true") {
         local_battle();
-        // start_battle();
     } else {
         start_battle();
     }

@@ -516,26 +516,9 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int_fast64_t ch
         // 这里不记录历史表。第一层就返回了。
         return 0;
     }
-
 #ifdef DEBUG
     this->cur_reduction += 1;
 #endif
-
-    // 发现排序没什么卵用，可能因为强制吃子的设定，大部分移动的价值都是0.
-    // MovePoints move_points;
-    // for (const auto & v: moves) {
-    //     this->do_move2(board, v, ops, hash_key, point, is_white);
-    //     // 获得执行move后的局面分
-    //     // 急需开局库让搜索更有效，大部分时候都不命中
-    //     auto move_val = this->find_history(hash_key, -1, -beta, -alpha, !is_white);
-    //     if (move_val == val_unknown) {
-    //         move_val = 0;
-    //     }
-    //     this->undo_move2(board, ops, hash_key, point, is_white);
-    //     move_points.push_back(MovePoint{move_val, v});
-    // }
-    // std::sort(move_points.begin(), move_points.end(), my_move_sort_func);
-
     // 本身就DFS优先选择向前移动。向前吃子冲突概率更高，更容易产生截断。
     // 最顶层还是随机一下，因为评估一样的局面不一定真的一样。更随机的结果可以减少和棋的概率。
     if (depth == this->cur_max_depth) {
@@ -544,27 +527,8 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int_fast64_t ch
     }
     size_t best_idx = 0;
     MoveOps ops;
-    int_fast64_t best_hash_key = 0;
     for (size_t i = 0; i < moves.size(); ++i) {
         this->do_move2(board, moves[i], ops, hash_key, check_sum, is_white);
-        int_fast64_t tmp = hash_key;
-        // 如果在最大层, 发现重复局面
-        // 1.局面出现2次
-        // 2.有其它选择. 第一层一定有alpha，而且这里有多个moves，所以不需要判断了。
-        // 记得回滚！！！
-        // if (depth == this->cur_max_depth) {
-        //     int duplicate_count = 0;
-        //     for (auto v: this->best_key_window) {
-        //         if (v == tmp) {
-        //             duplicate_count += 1;
-        //         }
-        //     }
-        //     if (duplicate_count >= 2) {
-        //         this->undo_move2(board, ops, hash_key);
-        //         continue;
-        //     }
-        // }
-
         int current_point = -this->alpha_beta2(board, hash_key, check_sum, !is_white, -beta, -alpha, depth - 1);
         this->undo_move2(board, ops, hash_key, check_sum);
         if (this->is_need_break) {
@@ -579,17 +543,15 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int_fast64_t ch
         }
         if (current_point > alpha) {
             alpha = current_point;
-            best_hash_key = tmp;
             best_idx = i;
         }
     }
 
-    this->record_history(best_hash_key, check_sum, depth, alpha, flag_exact, is_white);
+    this->record_history(hash_key, check_sum, depth, alpha, flag_exact, is_white);
     if (depth == this->cur_max_depth) {
         this->best_move = moves[best_idx];
         this->best_point = alpha;
         this->real_max_depth = depth;
-        // this->return_board_key = best_hash_key;
     }
 
     return alpha;

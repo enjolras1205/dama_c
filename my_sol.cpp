@@ -312,7 +312,7 @@ Move MySolution::get_best_move(Board & board, bool is_white)
     auto end_time = timeSinceEpochMillisec();
     int board_point = MySolution::calc_board(board, is_white);
     json log_data = {
-        {"version", "hehe_v1_7"},
+        {"version", "hehe_v1_7_1"},
         {"move", this->best_move},
         {"round", this->round},
         {"try_depth", this->cur_max_depth},
@@ -539,7 +539,8 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int_fast64_t ch
     // 本身就DFS优先选择向前移动。向前吃子冲突概率更高，更容易产生截断。
     // 最顶层还是随机一下，因为评估一样的局面不一定真的一样。更随机的结果可以减少和棋的概率。
     if (depth == this->cur_max_depth) {
-        std::shuffle(std::begin(moves), std::end(moves), this->random_engine);
+        std::default_random_engine rng(this->round_begin_ms);
+        std::shuffle(std::begin(moves), std::end(moves), rng);
     }
     size_t best_idx = 0;
     MoveOps ops;

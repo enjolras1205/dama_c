@@ -115,7 +115,6 @@ private:
     // 历史表，避免搜索重复局面。
     AllHistory all_history;
     // 随机种子
-    std::default_random_engine random_engine;
     // 我方先进入循环。
     // E6-E5 白 (重复局面)
     // B3-C3 黑

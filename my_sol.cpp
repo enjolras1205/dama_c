@@ -547,7 +547,7 @@ int MySolution::alpha_beta2(Board &board, int_fast64_t hash_key, int_fast64_t ch
         }
     }
 
-    this->record_history(hash_key, check_sum, depth, alpha, flag_exact, is_white);
+    // this->record_history(hash_key, check_sum, depth, alpha, flag_exact, is_white);
     if (depth == this->cur_max_depth) {
         this->best_move = moves[best_idx];
         this->best_point = alpha;
